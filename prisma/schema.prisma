@@ -1,0 +1,51 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  projects         Project[]
+  defaultProjectId String?
+  
+  @@map("profiles")
+}
+
+enum ProjectStatus {
+  ONBOARDING
+  ANALYZING
+  ACTIVE
+  FAILED
+}
+
+model Project {
+  id              String           @id @default(uuid())
+  name            String
+  status          ProjectStatus    @default(ONBOARDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  profileId       String
+  profile         Profile          @relation(fields: [profileId], references: [id])
+  analysisRecords AnalysisRecord[]
+  
+  @@map("projects")
+}
+
+model AnalysisRecord {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  status      String    // PENDING, RUNNING, COMPLETED, FAILED
+  results     Json      // The analysis results from the Go backend
+  createdAt   DateTime  @default(now())
+
+  @@map("analysis_records")
+}
