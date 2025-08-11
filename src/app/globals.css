@@ -1,0 +1,509 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 3.75rem;
+  --font-size-7xl: 4.5rem;
+  --font-size-8xl: 6rem;
+  --font-size-9xl: 8rem;
+  --line-height-3: 0.75rem;
+  --line-height-4: 1rem;
+  --line-height-5: 1.25rem;
+  --line-height-6: 1.5rem;
+  --line-height-7: 1.75rem;
+  --line-height-8: 2rem;
+  --line-height-9: 2.25rem;
+  --line-height-10: 2.5rem;
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  --spacing-px: 1px;
+  --spacing-0: 0px;
+  --spacing-0_5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1_5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-2_5: 0.625rem;
+  --spacing-3: 0.75rem;
+  --spacing-3_5: 0.875rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-7: 1.75rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --spacing-14: 3.5rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-28: 7rem;
+  --spacing-32: 8rem;
+  --spacing-36: 9rem;
+  --spacing-40: 10rem;
+  --spacing-44: 11rem;
+  --spacing-48: 12rem;
+  --spacing-52: 13rem;
+  --spacing-56: 14rem;
+  --spacing-60: 15rem;
+  --spacing-64: 16rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+  --spacing-96: 24rem;
+  --width-0: 0px;
+  --width-px: 1px;
+  --width-0_5: 0.125rem;
+  --width-1: 0.25rem;
+  --width-1_5: 0.375rem;
+  --width-2: 0.5rem;
+  --width-2_5: 0.625rem;
+  --width-3: 0.75rem;
+  --width-3_5: 0.875rem;
+  --width-4: 1rem;
+  --width-5: 1.25rem;
+  --width-6: 1.5rem;
+  --width-7: 1.75rem;
+  --width-8: 2rem;
+  --width-9: 2.25rem;
+  --width-10: 2.5rem;
+  --width-11: 2.75rem;
+  --width-12: 3rem;
+  --width-14: 3.5rem;
+  --width-16: 4rem;
+  --width-20: 5rem;
+  --width-24: 6rem;
+  --width-28: 7rem;
+  --width-32: 8rem;
+  --width-36: 9rem;
+  --width-40: 10rem;
+  --width-44: 11rem;
+  --width-48: 12rem;
+  --width-52: 13rem;
+  --width-56: 14rem;
+  --width-60: 15rem;
+  --width-64: 16rem;
+  --width-72: 18rem;
+  --width-80: 20rem;
+  --width-96: 24rem;
+  --width-auto: auto;
+  --width-1_2: 50%;
+  --width-1_3: 33.333333%;
+  --width-2_3: 66.666667%;
+  --width-1_4: 25%;
+  --width-2_4: 50%;
+  --width-3_4: 75%;
+  --width-1_5: 20%;
+  --width-2_5: 40%;
+  --width-3_5: 60%;
+  --width-4_5: 80%;
+  --width-1_6: 16.666667%;
+  --width-2_6: 33.333333%;
+  --width-3_6: 50%;
+  --width-4_6: 66.666667%;
+  --width-5_6: 83.333333%;
+  --width-1_12: 8.333333%;
+  --width-2_12: 16.666667%;
+  --width-3_12: 25%;
+  --width-4_12: 33.333333%;
+  --width-5_12: 41.666667%;
+  --width-6_12: 50%;
+  --width-7_12: 58.333333%;
+  --width-8_12: 66.666667%;
+  --width-9_12: 75%;
+  --width-10_12: 83.333333%;
+  --width-11_12: 91.666667%;
+  --width-full: 100%;
+  --width-screen: 100vw;
+  --width-svw: 100svw;
+  --width-lvw: 100lvw;
+  --width-dvw: 100dvw;
+  --width-min: min-content;
+  --width-max: max-content;
+  --width-fit: fit-content;
+  --height-0: 0px;
+  --height-px: 1px;
+  --height-0_5: 0.125rem;
+  --height-1: 0.25rem;
+  --height-1_5: 0.375rem;
+  --height-2: 0.5rem;
+  --height-2_5: 0.625rem;
+  --height-3: 0.75rem;
+  --height-3_5: 0.875rem;
+  --height-4: 1rem;
+  --height-5: 1.25rem;
+  --height-6: 1.5rem;
+  --height-7: 1.75rem;
+  --height-8: 2rem;
+  --height-9: 2.25rem;
+  --height-10: 2.5rem;
+  --height-11: 2.75rem;
+  --height-12: 3rem;
+  --height-14: 3.5rem;
+  --height-16: 4rem;
+  --height-20: 5rem;
+  --height-24: 6rem;
+  --height-28: 7rem;
+  --height-32: 8rem;
+  --height-36: 9rem;
+  --height-40: 10rem;
+  --height-44: 11rem;
+  --height-48: 12rem;
+  --height-52: 13rem;
+  --height-56: 14rem;
+  --height-60: 15rem;
+  --height-64: 16rem;
+  --height-72: 18rem;
+  --height-80: 20rem;
+  --height-96: 24rem;
+  --height-auto: auto;
+  --height-1_2: 50%;
+  --height-1_3: 33.333333%;
+  --height-2_3: 66.666667%;
+  --height-1_4: 25%;
+  --height-2_4: 50%;
+  --height-3_4: 75%;
+  --height-1_5: 20%;
+  --height-2_5: 40%;
+  --height-3_5: 60%;
+  --height-4_5: 80%;
+  --height-1_6: 16.666667%;
+  --height-2_6: 33.333333%;
+  --height-3_6: 50%;
+  --height-4_6: 66.666667%;
+  --height-5_6: 83.333333%;
+  --height-full: 100%;
+  --height-screen: 100vh;
+  --height-svh: 100svh;
+  --height-lvh: 100lvh;
+  --height-dvh: 100dvh;
+  --height-min: min-content;
+  --height-max: max-content;
+  --height-fit: fit-content;
+  --max-width-0: 0rem;
+  --max-width-none: none;
+  --max-width-xs: 20rem;
+  --max-width-sm: 24rem;
+  --max-width-md: 28rem;
+  --max-width-lg: 32rem;
+  --max-width-xl: 36rem;
+  --max-width-2xl: 42rem;
+  --max-width-3xl: 48rem;
+  --max-width-4xl: 56rem;
+  --max-width-5xl: 64rem;
+  --max-width-6xl: 72rem;
+  --max-width-7xl: 80rem;
+  --max-width-full: 100%;
+  --max-width-min: min-content;
+  --max-width-max: max-content;
+  --max-width-fit: fit-content;
+  --max-width-prose: 65ch;
+  --max-width-screen-sm: 640px;
+  --max-width-screen-md: 768px;
+  --max-width-screen-lg: 1024px;
+  --max-width-screen-xl: 1280px;
+  --max-width-screen-2xl: 1536px;
+  --border-width-0: 0px;
+  --border-width: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+  --border-width-8: 8px;
+  --border-radius-none: 0px;
+  --border-radius-sm: 0.125rem;
+  --border-radius: 0.25rem;
+  --border-radius-md: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 0.75rem;
+  --border-radius-2xl: 1rem;
+  --border-radius-3xl: 1.5rem;
+  --border-radius-full: 9999px;
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px oklch(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 oklch(0 0 0 / 0.05);
+  --shadow-none: 0 0 oklch(0 0 0 / 0);
+  --blur-sm: 4px;
+  --blur: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+  --blur-3xl: 64px;
+  --drop-shadow-sm: drop-shadow(0 1px 1px oklch(0 0 0 / 0.05));
+  --drop-shadow: drop-shadow(0 1px 2px oklch(0 0 0 / 0.1)) drop-shadow(0 1px 1px oklch(0 0 0 / 0.06));
+  --drop-shadow-md: drop-shadow(0 4px 3px oklch(0 0 0 / 0.07)) drop-shadow(0 2px 2px oklch(0 0 0 / 0.06));
+  --drop-shadow-lg: drop-shadow(0 10px 8px oklch(0 0 0 / 0.04)) drop-shadow(0 4px 3px oklch(0 0 0 / 0.1));
+  --drop-shadow-xl: drop-shadow(0 20px 13px oklch(0 0 0 / 0.03)) drop-shadow(0 8px 5px oklch(0 0 0 / 0.08));
+  --drop-shadow-2xl: drop-shadow(0 25px 25px oklch(0 0 0 / 0.15));
+  --drop-shadow-none: drop-shadow(0 0 oklch(0 0 0 / 0));
+  --inset-shadow-sm: inset 0 1px 1px 0 oklch(0 0 0 / 0.05);
+  --inset-shadow: inset 0 2px 4px 0 oklch(0 0 0 / 0.05);
+  --inset-shadow-lg: inset 0 4px 6px -1px oklch(0 0 0 / 0.1);
+  --inset-shadow-xl: inset 0 8px 15px -3px oklch(0 0 0 / 0.1);
+  --inset-shadow-2xl: inset 0 25px 50px -12px oklch(0 0 0 / 0.25);
+  --animate-spin: spin 1s linear infinite;
+  --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce: bounce 1s infinite;
+}
+
+:root {
+  --radius: 0.5rem;
+  
+  /* ChatGPT Base Colors */
+  --bg-primary: #fff;
+  --bg-secondary: #e8e8e8;
+  --bg-tertiary: #f3f3f3;
+  --bg-elevated-primary: #fff;
+  --bg-elevated-secondary: #f9f9f9;
+  
+  /* ChatGPT Text Colors */
+  --text-primary: #0d0d0d;
+  --text-secondary: #5d5d5d;
+  --text-tertiary: #8f8f8f;
+  --text-inverted: #fff;
+  --text-accent: #66b5ff;
+  
+  /* ChatGPT Icon Colors */
+  --icon-primary: #0d0d0d;
+  --icon-secondary: #5d5d5d;
+  --icon-tertiary: #8f8f8f;
+  --icon-inverted: #fff;
+  --icon-accent: #0285ff;
+  
+  /* ChatGPT Border Colors */
+  --border-default: #0d0d0d1a;
+  --border-heavy: #0d0d0d26;
+  --border-light: #0d0d0d0d;
+  
+  /* ChatGPT Interactive States */
+  --interactive-bg-secondary-default: #0d0d0d00;
+  --interactive-bg-secondary-hover: #0d0d0d05;
+  --interactive-bg-secondary-press: #0d0d0d0d;
+  --interactive-bg-tertiary-default: #fff;
+  --interactive-bg-tertiary-hover: #f9f9f9;
+  --interactive-bg-tertiary-press: #f3f3f3;
+  
+  /* ChatGPT Sidebar Specific */
+  --sidebar-width: 260px;
+  --sidebar-surface: #fcfcfc;
+  --sidebar-surface-primary: #f9f9f9;
+  --sidebar-surface-secondary: #ececec;
+  --sidebar-surface-tertiary: #e3e3e3;
+  --sidebar-body-primary: #0d0d0d;
+  --sidebar-icon: #7d7d7d;
+  --sidebar-title-primary: #28282880;
+  
+  /* Surface and Hover States */
+  --surface-hover: #00000012;
+  --main-surface-primary: #fff;
+  --main-surface-secondary: #f9f9f9;
+  --main-surface-secondary-selected: #0000001a;
+  
+  /* Shadcn/UI Compatibility Mappings */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-elevated-primary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-elevated-primary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--text-primary);
+  --primary-foreground: var(--text-inverted);
+  --secondary: var(--bg-secondary);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--interactive-bg-secondary-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: oklch(62.8% 0.25768 29.2338);
+  --destructive-foreground: var(--text-inverted);
+  --border: var(--border-light);
+  --input: var(--border-light);
+  --ring: var(--text-primary);
+  --chart-1: oklch(60.2% 0.14861 154.078);
+  --chart-2: oklch(72.4% 0.14383 231.663);
+  --chart-3: oklch(71.7% 0.17325 22.7817);
+  --chart-4: oklch(64.8% 0.16911 285.75);
+  --chart-5: oklch(62.2% 0.23807 340.737);
+  
+  /* Sidebar Shadcn/UI Mappings */
+  --sidebar: var(--sidebar-surface);
+  --sidebar-foreground: var(--sidebar-body-primary);
+  --sidebar-primary: var(--sidebar-body-primary);
+  --sidebar-primary-foreground: var(--text-inverted);
+  --sidebar-accent: var(--interactive-bg-secondary-hover);
+  --sidebar-accent-foreground: var(--sidebar-body-primary);
+  --sidebar-border: var(--border-light);
+  --sidebar-ring: var(--text-primary);
+}
+
+.dark {
+  /* ChatGPT Dark Base Colors */
+  --bg-primary: #212121;
+  --bg-secondary: #2f2f2f;
+  --bg-tertiary: #424242;
+  --bg-elevated-primary: #212121;
+  --bg-elevated-secondary: #2f2f2f;
+  
+  /* ChatGPT Dark Text Colors */
+  --text-primary: #ececec;
+  --text-secondary: #b4b4b4;
+  --text-tertiary: #9b9b9b;
+  --text-inverted: #0d0d0d;
+  --text-accent: #66b5ff;
+  
+  /* ChatGPT Dark Icon Colors */
+  --icon-primary: #ececec;
+  --icon-secondary: #b4b4b4;
+  --icon-tertiary: #9b9b9b;
+  --icon-inverted: #0d0d0d;
+  --icon-accent: #0285ff;
+  
+  /* ChatGPT Dark Border Colors */
+  --border-default: #ffffff1a;
+  --border-heavy: #ffffff26;
+  --border-light: #ffffff0d;
+  
+  /* ChatGPT Dark Interactive States */
+  --interactive-bg-secondary-default: #ffffff00;
+  --interactive-bg-secondary-hover: #ffffff05;
+  --interactive-bg-secondary-press: #ffffff0d;
+  --interactive-bg-tertiary-default: #212121;
+  --interactive-bg-tertiary-hover: #2f2f2f;
+  --interactive-bg-tertiary-press: #424242;
+  
+  /* ChatGPT Dark Sidebar Specific */
+  --sidebar-surface: #171717;
+  --sidebar-surface-primary: #212121;
+  --sidebar-surface-secondary: #2f2f2f;
+  --sidebar-surface-tertiary: #424242;
+  --sidebar-body-primary: #ececec;
+  --sidebar-icon: #9b9b9b;
+  --sidebar-title-primary: #ececec80;
+  
+  /* Dark Surface and Hover States */
+  --surface-hover: #ffffff12;
+  --main-surface-primary: #212121;
+  --main-surface-secondary: #2f2f2f;
+  --main-surface-secondary-selected: #ffffff1a;
+  
+  /* Shadcn/UI Dark Compatibility Mappings */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-elevated-primary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-elevated-primary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--text-primary);
+  --primary-foreground: var(--text-inverted);
+  --secondary: var(--bg-secondary);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--interactive-bg-secondary-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: oklch(62.8% 0.25768 29.2338);
+  --destructive-foreground: var(--text-primary);
+  --border: var(--border-light);
+  --input: var(--border-light);
+  --ring: var(--text-primary);
+  --chart-1: oklch(70% 0.14 154.078);
+  --chart-2: oklch(72.4% 0.14383 231.663);
+  --chart-3: oklch(71.7% 0.17325 22.7817);
+  --chart-4: oklch(64.8% 0.16911 285.75);
+  --chart-5: oklch(62.2% 0.23807 340.737);
+  
+  /* Dark Sidebar Shadcn/UI Mappings */
+  --sidebar: var(--sidebar-surface);
+  --sidebar-foreground: var(--sidebar-body-primary);
+  --sidebar-primary: var(--sidebar-body-primary);
+  --sidebar-primary-foreground: var(--text-inverted);
+  --sidebar-accent: var(--interactive-bg-secondary-hover);
+  --sidebar-accent-foreground: var(--sidebar-body-primary);
+  --sidebar-border: var(--border-light);
+  --sidebar-ring: var(--text-primary);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .border-token-border-light {
+    border-color: var(--border-light);
+  }
+}
