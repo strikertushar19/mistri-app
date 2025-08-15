@@ -5,11 +5,13 @@ import { SidebarNavigation } from "./sidebar-navigation"
 import { SidebarFooter } from "./sidebar-footer"
 import { SidebarContentProps } from "./types"
 import { SidebarHeader } from "./sidebar-header"
+import { useSidebarContext } from "@/contexts/sidebar-context"
 import Image from "next/image"
 
 // Single Responsibility: Compose ChatGPT-like sidebar sections
 export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }: SidebarContentProps) {
   const { isCollapsed } = state
+  const { toggleCollapse } = useSidebarContext()
 
   return (
     <div className="flex h-full flex-col bg-[var(--bg-elevated-secondary)]">
@@ -32,7 +34,7 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
                 {/* Trigger button - replaces logo on hover */}
                 {onTrigger && (
                   <button
-                    onClick={onTrigger}
+                    onClick={toggleCollapse}
                     className={cn(
                       "text-[var(--text-tertiary)] no-draggable hover:bg-[var(--interactive-bg-secondary-hover)] focus-visible:bg-[var(--interactive-bg-secondary-hover)]",
                       "touch:h-10 touch:w-10 flex h-9 w-9 items-center justify-center rounded-lg",
@@ -76,7 +78,7 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
                 {/* ChatGPT-style trigger button */}
                 {onTrigger && (
                   <button
-                    onClick={onTrigger}
+                    onClick={toggleCollapse}
                     className={cn(
                       "text-[var(--text-tertiary)] no-draggable hover:bg-[var(--interactive-bg-secondary-hover)] focus-visible:bg-[var(--interactive-bg-secondary-hover)]",
                       "touch:h-10 touch:w-10 flex h-9 w-9 items-center justify-center rounded-lg",
@@ -92,7 +94,7 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
                       alt="Toggle sidebar"
                       width={20}
                       height={20}
-                      className="hidden md:block"
+                      className="hidden  md:block"
                     />
                     <Image
                       src="/sidebar-close-mobile.svg"

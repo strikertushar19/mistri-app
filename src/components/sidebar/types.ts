@@ -5,6 +5,13 @@ export interface NavigationItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   badge?: number
+  isLogout?: boolean
+  hasDropdown?: boolean
+  dropdownItems?: Array<{
+    id: string
+    name: string
+    href: string
+  }>
 }
 
 export interface SidebarState {
@@ -25,7 +32,7 @@ export interface SidebarContentProps {
   navigationItems: NavigationItem[]
   onNavigate?: () => void
   onToggleCollapse?: () => void
-  onTrigger?: () => void
+  onTrigger?: boolean
 }
 
 export interface SidebarTriggerProps {

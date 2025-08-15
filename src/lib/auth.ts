@@ -1,0 +1,106 @@
+import { NextAuthOptions } from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+import axios from "axios"
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        accessToken: { label: "Access Token", type: "text" },
+        refreshToken: { label: "Refresh Token", type: "text" }
+      },
+      async authorize(credentials) {
+        // Handle OAuth callback with tokens
+        if (credentials?.accessToken && credentials?.refreshToken) {
+          try {
+            // Verify token with backend
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+              headers: {
+                Authorization: `Bearer ${credentials.accessToken}`
+              }
+            })
+
+            const user = response.data
+            return {
+              id: user.id,
+              email: user.email,
+              name: `${user.first_name} ${user.last_name}`,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              avatar: user.avatar,
+              accessToken: credentials.accessToken,
+              refreshToken: credentials.refreshToken,
+            }
+          } catch (error) {
+            console.error("Token verification error:", error)
+            return null
+          }
+        }
+
+        // Handle email/password login
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        try {
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+            email: credentials.email,
+            password: credentials.password,
+          })
+
+          const { user, access_token, refresh_token } = response.data
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: `${user.first_name} ${user.last_name}`,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            avatar: user.avatar,
+            accessToken: access_token,
+            refreshToken: refresh_token,
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
+          return null
+        }
+      }
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.accessToken = user.accessToken
+        token.refreshToken = user.refreshToken
+        token.firstName = user.firstName
+        token.lastName = user.lastName
+        token.avatar = user.avatar
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.sub
+        session.user.accessToken = token.accessToken
+        session.user.refreshToken = token.refreshToken
+        session.user.firstName = token.firstName
+        session.user.lastName = token.lastName
+        session.user.avatar = token.avatar
+      }
+      return session
+    }
+  },
+  pages: {
+    signIn: "/login",
+    signUp: "/signup",
+  },
+  session: {
+    strategy: "jwt",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+

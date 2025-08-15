@@ -1,4 +1,4 @@
-import { Home, Code2 } from "lucide-react"
+import { Home, Code2, MessageCircle, Settings, History } from "lucide-react"
 import { NavigationItem } from "@/components/sidebar/types"
 
 // Open/Closed Principle: Easy to extend navigation without modifying existing code
@@ -10,4 +10,17 @@ export const navigationConfig: NavigationItem[] = [
     icon: Home,
   },
   { id: "codebase", name: "Codebase", href: "/codebase", icon: Code2 },
+  { id: "chat", name: "Chat", href: "/chat", icon: MessageCircle },
+  { id: "history", name: "History", href: "/history", icon: History },
+  {
+    id: "integrations",
+    name: "Integrations",
+    href: "#",
+    icon: Settings,
+    hasDropdown: true,
+    dropdownItems: [
+      { id: "cloud-providers", name: "Cloud Providers", href: "/cloud-providers" },
+      { id: "code-providers", name: "Code Providers", href: "/code-providers" },
+    ],
+  },
 ]

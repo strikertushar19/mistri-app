@@ -3,7 +3,8 @@
 import { ReactNode } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useSidebar } from "@/hooks/use-sidebar"
+import { UserMenu } from "@/components/auth/user-menu"
+import { useSidebarContext } from "@/contexts/sidebar-context"
 import { navigationConfig } from "@/config/navigation"
 import { cn } from "@/lib/utils"
 
@@ -13,10 +14,7 @@ interface DashboardLayoutProps {
 
 // Single Responsibility: Compose the main dashboard layout
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const sidebar = useSidebar({
-    defaultCollapsed: false,
-    defaultOpen: false,
-  })
+  const sidebar = useSidebarContext()
 
   const { state } = sidebar
   const { isOpen, isCollapsed, isFloating } = state
@@ -59,17 +57,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              
-              {/* User Avatar */}
-              <button className="flex items-center gap-3 rounded-lg p-2 hover:bg-accent/50 transition-colors">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-sm font-medium">U</span>
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium">User Name</p>
-                  <p className="text-xs text-muted-foreground">Admin</p>
-                </div>
-              </button>
+              <UserMenu />
             </div>
           </div>
         </header>

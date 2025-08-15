@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { SidebarContent } from "./sidebar-content"
 import { SidebarOverlay } from "./sidebar-overlay"
 import { SidebarProps } from "./types"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { SidebarTrigger } from "." // from index barrel
 
@@ -102,7 +102,7 @@ export function Sidebar({ className, state, onStateChange, navigationItems }: Si
           state={state} 
           navigationItems={navigationItems}
           onNavigate={handleNavigate}
-          onTrigger={() => onStateChange({ isCollapsed: !isCollapsed })}
+          onTrigger={true}
         />
 
         {/* Hover flyout reserved (disabled) */}

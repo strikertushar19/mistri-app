@@ -15,11 +15,11 @@ export function SidebarHeader({ state, className }: SidebarHeaderProps) {
 
   return (
     <div className={cn(
-      "flex items-center transition-all duration-300",
+      "flex items-center transition-all duration-300 min-w-0",
       isCollapsed ? "px-3 py-3" : "px-3 py-3",
       className
     )}>
-      <Link href="/" className="flex items-center gap-2.5">
+      <Link href="/" className="flex items-center gap-2.5 min-w-0 flex-1">
         <div className={cn(
           "rounded-md bg-primary/90 flex items-center justify-center transition-all duration-300",
           isCollapsed ? "h-7 w-7" : "h-7 w-7"
@@ -33,8 +33,8 @@ export function SidebarHeader({ state, className }: SidebarHeaderProps) {
         </div>
         
         {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="font-medium text-sm tracking-tight">Mistri AI</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-sm tracking-tight truncate">Mistri AI</span>
           </div>
         )}
       </Link>

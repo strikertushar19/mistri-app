@@ -11,6 +11,8 @@ import {
 } from "@phosphor-icons/react";
 import { useState, useRef, useEffect } from "react";
 import { Menu, MenuHeader, MenuItem } from "@/components/ui/menu";
+import { useAuth } from "@/contexts/auth-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 
 interface SidebarFooterProps {
   state: SidebarState;
@@ -22,6 +24,7 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
   const { isCollapsed } = state;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
 
   const footerActions = [
     {
@@ -46,8 +49,8 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
       id: "logout",
       name: "Log out",
       icon: SignOutIcon,
-      onClick: () => {
-        console.log("Logout clicked");
+      onClick: async () => {
+        await logout();
         setIsDropdownOpen(false);
       },
     },
@@ -68,6 +71,11 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Don't show footer if user is not authenticated
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className={cn("mt-auto relative", className)} ref={dropdownRef}>
       {/* Dropdown Menu */}
@@ -82,12 +90,10 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
         >
           <MenuHeader>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-[var(--text-secondary)]">
-                <span className="text-[var(--text-inverted)] text-[10px]">
-                  👤
-                </span>
-              </div>
-              <span className="truncate">tusharmudgal3@gmail.com</span>
+            <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatar} className="rounded-full" alt={user.first_name} />
+          </Avatar>
+              <span className="truncate">{user?.email || "Guest"}</span>
             </div>
           </MenuHeader>
 
@@ -121,16 +127,16 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
             )}
           >
             <div className="h-8 w-8 rounded-full bg-[var(--text-primary)] flex items-center justify-center flex-shrink-0">
-              <span className="text-[var(--text-inverted)] text-sm font-medium">
-                T
-              </span>
+            <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatar} className="rounded-full" alt={user.first_name} />
+          </Avatar>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                Tushar Mudgal
+                {user ? `${user.first_name} ${user.last_name}` : "Guest"}
               </p>
               <p className="text-xs text-[var(--text-secondary)] truncate">
-                Free
+                {user?.email || "Not signed in"}
               </p>
             </div>
             <CaretUpIcon

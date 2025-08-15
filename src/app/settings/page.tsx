@@ -1,12 +1,105 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 
+interface UserProfile {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+  avatar?: string
+  is_verified: boolean
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export default function SettingsPage() {
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [avatar, setAvatar] = useState("")
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        setError('No access token found')
+        setLoading(false)
+        return
+      }
+
+              const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData: UserProfile = await response.json()
+        setFirstName(userData.first_name || '')
+        setLastName(userData.last_name || '')
+        setAvatar(userData.avatar || '')
+        setEmail(userData.email || '')
+        setError(null)
+      } else {
+        setError('Failed to fetch user profile')
+      }
+    } catch (error) {
+      setError('Error fetching user profile')
+      console.error('Error fetching profile:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUserProfile()
+  }, [])
+
+  const handleProfileUpdate = async () => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        console.error('No access token found')
+        return
+      }
+
+              const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar: avatar,
+          first_name: firstName,
+          last_name: lastName
+        })
+      })
+
+      if (response.ok) {
+        console.log('Profile updated successfully')
+      } else {
+        console.error('Failed to update profile')
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error)
+    }
+  }
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -27,21 +120,63 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" placeholder="Enter your first name" />
+              {loading ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Loading profile...</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" placeholder="Enter your last name" />
+              ) : error ? (
+                <div className="text-center py-4">
+                  <p className="text-red-500">{error}</p>
+                  <Button onClick={fetchUserProfile} variant="outline" className="mt-2">
+                    Retry
+                  </Button>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter your email" />
-              </div>
-              <Button>Save Changes</Button>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input 
+                        id="firstName" 
+                        placeholder="Enter your first name" 
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input 
+                        id="lastName" 
+                        placeholder="Enter your last name" 
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="Enter your email" 
+                      value={email}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="avatar">Avatar URL</Label>
+                    <Input 
+                      id="avatar" 
+                      type="url" 
+                      placeholder="Enter avatar URL" 
+                      value={avatar}
+                      onChange={(e) => setAvatar(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleProfileUpdate}>Save Changes</Button>
+                </>
+              )}
             </CardContent>
           </Card>
 
