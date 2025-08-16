@@ -5,12 +5,47 @@ export interface ModelInfo {
   models: string[]
 }
 
+export interface Repository {
+  id: number
+  name: string
+  full_name: string
+  description: string
+  private: boolean
+  fork: boolean
+  url: string
+  clone_url: string
+  ssh_url: string
+  language: string
+  size: number
+  stars: number
+  forks: number
+  updated_at: string
+  created_at: string
+  owner: {
+    login: string
+    avatar_url: string
+    type: string
+  }
+}
+
+export interface Organization {
+  id: number
+  name: string
+  login: string
+  description: string
+  avatar_url: string
+  url: string
+  type: string
+}
+
 export interface ChatRequest {
   conversation_id?: string
   message: string
   system_message?: string
   model: string
   max_tokens?: number
+  repositories?: Repository[]
+  organizations?: Organization[]
 }
 
 export interface ChatResponse {

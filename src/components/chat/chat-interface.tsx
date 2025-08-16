@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ArrowRight, X, History, Plus, Loader2 } from "lucide-react"
+import { ChevronDown, ArrowRight, X, History, Plus, Loader2, Database } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import {
   DropdownMenu,
@@ -122,7 +122,9 @@ export function ChatInterface() {
         message: content,
         system_message: systemMessage,
         model: selectedModel,
-        max_tokens: 1024
+        max_tokens: 1024,
+        repositories: selectedRepositories.length > 0 ? selectedRepositories : undefined,
+        organizations: selectedOrganizations.length > 0 ? selectedOrganizations : undefined
       }
 
       // Send message to AI
@@ -434,6 +436,35 @@ export function ChatInterface() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+
+            {/* Repository Context Indicator */}
+            {(selectedRepositories.length > 0 || selectedOrganizations.length > 0) && (
+              <div className="mb-3 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                <div className="flex items-center gap-1">
+                  <Database className="h-3 w-3" />
+                  <span>Context:</span>
+                </div>
+                {selectedRepositories.length > 0 && (
+                  <span className="bg-[var(--bg-secondary)] px-2 py-1 rounded">
+                    {selectedRepositories.length} repo{selectedRepositories.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {selectedOrganizations.length > 0 && (
+                  <span className="bg-[var(--bg-secondary)] px-2 py-1 rounded">
+                    {selectedOrganizations.length} org{selectedOrganizations.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+                <Button
+                  onClick={clearAllContext}
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 px-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  title="Clear all context"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
 
             {/* Message Input */}
             <div className="relative">
