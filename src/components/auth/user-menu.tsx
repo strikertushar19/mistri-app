@@ -27,7 +27,13 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} alt={user.first_name} />
+            <AvatarImage 
+              src={user.avatar} 
+              alt={user.first_name}
+              onError={(e) => {
+                console.log("Avatar image failed to load, using fallback:", e);
+              }}
+            />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -61,5 +67,4 @@ export function UserMenu() {
     </DropdownMenu>
   )
 }
-
 

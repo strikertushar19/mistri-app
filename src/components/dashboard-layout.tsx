@@ -10,10 +10,16 @@ import { cn } from "@/lib/utils"
 
 interface DashboardLayoutProps {
   children: ReactNode
+  headerContent?: ReactNode
+  showDefaultHeader?: boolean
 }
 
 // Single Responsibility: Compose the main dashboard layout
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ 
+  children, 
+  headerContent, 
+  showDefaultHeader = true 
+}: DashboardLayoutProps) {
   const sidebar = useSidebarContext()
 
   const { state } = sidebar
@@ -47,24 +53,30 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           "supports-[backdrop-filter]:bg-background/60"
         )}>
           <div className="flex h-16 items-center justify-between px-6">
-            <div className="flex items-center gap-4">
-              {/* Desktop toggle moved into Sidebar component */}
-              {/* <div>
-                <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Welcome back!</p>
-              </div> */}
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <UserMenu />
-            </div>
+            {headerContent ? (
+              headerContent
+            ) : showDefaultHeader ? (
+              <>
+                <div className="flex items-center gap-4">
+                  {/* Desktop toggle moved into Sidebar component */}
+                  {/* <div>
+                    <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+                    <p className="text-sm text-muted-foreground">Welcome back!</p>
+                  </div> */}
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <ThemeToggle />
+                  <UserMenu />
+                </div>
+              </>
+            ) : null}
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
-          <div className="mx-auto max-w-7xl">
+        <main className={showDefaultHeader ? "p-6" : ""}>
+          <div className={showDefaultHeader ? "mx-auto max-w-7xl" : ""}>
             {children}
           </div>
         </main>

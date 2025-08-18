@@ -22,7 +22,73 @@ import { chatApi, ChatRequest } from "@/lib/api/chat"
 import { useSearchParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-export function ChatInterface() {
+// Chat Header Component
+interface ChatHeaderProps {
+  currentConversation: Conversation | null
+  messages: Message[]
+  selectedModel: string
+  onModelSelect: (model: string) => void
+  onCreateNewConversation: () => void
+  onToggleHistory: () => void
+  showHistory: boolean
+}
+
+export function ChatHeader({
+  currentConversation,
+  messages,
+  selectedModel,
+  onModelSelect,
+  onCreateNewConversation,
+  onToggleHistory,
+  showHistory
+}: ChatHeaderProps) {
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleHistory}
+          className="h-8 w-8 p-0"
+        >
+          <History className="h-4 w-4" />
+        </Button>
+        <div>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+            {currentConversation?.title || "New Conversation"}
+          </h2>
+          {currentConversation && (
+            <p className="text-sm text-[var(--text-secondary)]">
+              {messages.length} messages
+            </p>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <ModelSelector
+          selectedModel={selectedModel}
+          onModelSelect={onModelSelect}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCreateNewConversation}
+          className="h-8"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          New
+        </Button>
+      </div>
+    </>
+  )
+}
+
+interface ChatInterfaceProps {
+  renderHeader?: (headerContent: React.ReactNode) => void
+}
+
+export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [content, setContent] = useState("")
@@ -60,6 +126,24 @@ export function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Render header content when it changes
+  useEffect(() => {
+    if (renderHeader) {
+      const headerContent = (
+        <ChatHeader
+          currentConversation={currentConversation}
+          messages={messages}
+          selectedModel={selectedModel}
+          onModelSelect={setSelectedModel}
+          onCreateNewConversation={createNewConversation}
+          onToggleHistory={() => setShowHistory(!showHistory)}
+          showHistory={showHistory}
+        />
+      )
+      renderHeader(headerContent)
+    }
+  }, [currentConversation, messages, selectedModel, showHistory, renderHeader])
 
   const loadConversation = async (id: string) => {
     try {
@@ -209,7 +293,7 @@ export function ChatInterface() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <div className="flex items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>Loading conversation...</span>
@@ -219,7 +303,7 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-8rem)] flex">
+    <div className="relative h-[calc(100vh-4rem)] flex">
       {/* Conversation History Sidebar */}
       {showHistory && (
         <div className="w-80 border-r border-[var(--border-light)] bg-[var(--bg-secondary)]">
@@ -233,46 +317,6 @@ export function ChatInterface() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border-light)] bg-[var(--bg-primary)]">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHistory(!showHistory)}
-              className="h-8 w-8 p-0"
-            >
-              <History className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                {currentConversation?.title || "New Conversation"}
-              </h2>
-              {currentConversation && (
-                <p className="text-sm text-[var(--text-secondary)]">
-                  {messages.length} messages
-                </p>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <ModelSelector
-              selectedModel={selectedModel}
-              onModelSelect={setSelectedModel}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={createNewConversation}
-              className="h-8"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              New
-            </Button>
-          </div>
-        </div>
-
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (

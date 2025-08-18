@@ -12,7 +12,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { Menu, MenuHeader, MenuItem } from "@/components/ui/menu";
 import { useAuth } from "@/contexts/auth-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarFooterProps {
   state: SidebarState;
@@ -90,9 +90,19 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
         >
           <MenuHeader>
             <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} className="rounded-full" alt={user.first_name} />
-          </Avatar>
+              <Avatar className="h-8 w-8">
+                <AvatarImage 
+                  src={user.avatar} 
+                  className="rounded-full" 
+                  alt={user.first_name}
+                  onError={(e) => {
+                    console.log("Avatar image failed to load, using fallback:", e);
+                  }}
+                />
+                <AvatarFallback className="text-xs">
+                  {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
               <span className="truncate">{user?.email || "Guest"}</span>
             </div>
           </MenuHeader>
@@ -126,11 +136,19 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
               isDropdownOpen && "bg-[var(--interactive-bg-secondary-hover)]"
             )}
           >
-            <div className="h-8 w-8 rounded-full bg-[var(--text-primary)] flex items-center justify-center flex-shrink-0">
-            <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} className="rounded-full" alt={user.first_name} />
-          </Avatar>
-            </div>
+            <Avatar className="h-8 w-8 flex-shrink-0">
+              <AvatarImage 
+                src={user.avatar} 
+                className="rounded-full" 
+                alt={user.first_name}
+                onError={(e) => {
+                  console.log("Avatar image failed to load, using fallback:", e);
+                }}
+              />
+              <AvatarFallback className="text-xs bg-[var(--text-primary)] text-[var(--text-inverted)]">
+                {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                 {user ? `${user.first_name} ${user.last_name}` : "Guest"}

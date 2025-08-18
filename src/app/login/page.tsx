@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { toast } from "@/components/ui/use-toast"
 import { Separator } from "@/components/ui/separator"
+import { userStorage } from "@/lib/utils"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -73,6 +74,7 @@ export default function LoginPage() {
       // Clear local storage
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
+      userStorage.clearUserData()
       
       // Sign out from NextAuth
       await signOut({ redirect: false })

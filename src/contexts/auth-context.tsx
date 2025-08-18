@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { User } from "@/lib/api"
+import { userStorage } from "@/lib/utils"
+
 
 interface AuthContextType {
   user: User | null
@@ -25,13 +27,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (session?.user) {
+      // Get user data from localStorage if available (for OAuth users)
+      const storedUserData = userStorage.getUserData()
+      
       // Convert session user to our User type
       const userData: User = {
         id: session.user.id || "",
-        email: session.user.email || "",
-        first_name: session.user.firstName || "",
-        last_name: session.user.lastName || "",
-        avatar: session.user.avatar,
+        email: storedUserData?.email || session.user.email || "",
+        first_name: storedUserData?.firstName || session.user.firstName || "",
+        last_name: storedUserData?.lastName || session.user.lastName || "",
+        avatar: storedUserData?.avatarUrl || session.user.avatar || "",
         provider: "email",
         is_verified: true,
         is_active: true,
@@ -74,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear local storage
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
+      userStorage.clearUserData()
 
       // Sign out from NextAuth
       await signOut({ redirect: false })
