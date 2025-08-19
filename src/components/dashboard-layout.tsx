@@ -26,7 +26,7 @@ export function DashboardLayout({
   const { isOpen, isCollapsed, isFloating } = state
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       {/* Mobile trigger moved into Sidebar component */}
 
       {/* Sidebar */}
@@ -39,7 +39,7 @@ export function DashboardLayout({
       {/* Main Content */}
       <div 
         className={cn(
-          "transition-all duration-300 ease-in-out",
+          "transition-all duration-300 ease-in-out bg-transparent",
           isFloating
             ? "ml-0"
             : isCollapsed
@@ -75,8 +75,8 @@ export function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className={showDefaultHeader ? "p-6" : ""}>
-          <div className={showDefaultHeader ? "mx-auto max-w-7xl" : ""}>
+        <main className={cn(showDefaultHeader ? "p-6" : "", "bg-transparent") }>
+          <div className={cn(showDefaultHeader ? "mx-auto max-w-7xl" : "", "bg-transparent")}>
             {children}
           </div>
         </main>

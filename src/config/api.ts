@@ -3,8 +3,11 @@ export const API_CONFIG = {
   // Base URL for API requests
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   
-  // Timeout for API requests (30 seconds)
+  // Timeout for API requests (30 seconds) - removed for chat operations
   TIMEOUT: 30000,
+  
+  // Extended timeout for chat operations (5 minutes)
+  CHAT_TIMEOUT: 300000,
   
   // Endpoints
   ENDPOINTS: {

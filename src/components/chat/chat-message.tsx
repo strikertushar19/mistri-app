@@ -5,6 +5,9 @@ import { User, Bot, Edit2, Trash2, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Message } from "@/lib/api/conversations"
 import { cn } from "@/lib/utils"
+import { AnalysisResponse } from "@/components/chat/analysis-response"
+import { RepositoryAnalysisMessage } from "@/components/chat/repository-analysis-message"
+import { isAnalysisResponse, parseJSONWithEscapes } from "@/lib/utils/json-parser"
 
 interface ChatMessageProps {
   message: Message
@@ -64,6 +67,8 @@ export function ChatMessage({ message, onEdit, onDelete, className }: ChatMessag
 
   const metadata = parseMetadata(message.metadata)
   const cost = metadata?.cost
+
+
 
   return (
     <div className={cn("group relative", className)}>
@@ -167,9 +172,40 @@ export function ChatMessage({ message, onEdit, onDelete, className }: ChatMessag
             </div>
           ) : (
             <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-[var(--text-primary)]">
-                {message.content}
-              </div>
+              {(() => {
+                console.log("ChatMessage: Checking if content is analysis response")
+                console.log("ChatMessage: Content type:", typeof message.content)
+                console.log("ChatMessage: Content preview:", message.content?.substring(0, 100) + "...")
+                
+                // Safety check for null/undefined content
+                if (!message.content) {
+                  console.log("ChatMessage: Content is null or undefined")
+                  return (
+                    <div className="text-[var(--text-secondary)] italic">
+                      No content available
+                    </div>
+                  )
+                }
+                
+                // Check if this is a repository analysis message
+                const isAnalysis = isAnalysisResponse(message.content) || 
+                                  message.content.toLowerCase().includes('repository analysis') ||
+                                  message.content.toLowerCase().includes('codebase analysis') ||
+                                  message.content.toLowerCase().includes('system architecture') ||
+                                  message.content.toLowerCase().includes('design patterns') ||
+                                  message.content.includes('![UML Diagram](')
+                
+                if (isAnalysis) {
+                  return <RepositoryAnalysisMessage content={message.content} />
+                }
+                
+                // Fallback to regular text rendering
+                return (
+                  <div className="whitespace-pre-wrap text-[var(--text-primary)]">
+                    {message.content}
+                  </div>
+                )
+              })()}
             </div>
           )}
 

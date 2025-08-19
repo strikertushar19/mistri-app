@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { API_CONFIG } from '@/config/api'
 
 export interface ModelInfo {
   provider: string
@@ -75,7 +76,9 @@ export const chatApi = {
 
   // Send a message to AI and get response
   sendMessage: async (data: ChatRequest): Promise<ChatResponse> => {
-    const response = await apiClient.post('/chat/completion', data)
+    const response = await apiClient.post('/chat/completion', data, {
+      timeout: API_CONFIG.CHAT_TIMEOUT, // Extended timeout for chat operations
+    })
     return response.data
   }
 }

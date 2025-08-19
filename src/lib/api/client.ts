@@ -5,7 +5,7 @@ import { TokenManager } from '@/lib/auth/token-manager'
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
-  timeout: API_CONFIG.TIMEOUT,
+  // Removed global timeout to allow longer operations for chat
   headers: API_CONFIG.HEADERS,
 })
 
@@ -43,6 +43,12 @@ apiClient.interceptors.response.use(
     // Handle network errors
     if (!error.response) {
       console.error('Network error:', error.message)
+      
+      // Check if it's a timeout error
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Request timed out. This operation may take longer than expected. Please try again.')
+      }
+      
       throw new Error(API_ERRORS.NETWORK_ERROR)
     }
     
