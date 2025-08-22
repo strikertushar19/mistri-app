@@ -1,5 +1,6 @@
 import api from '../api'
 import { cacheRepositoryData } from '../cache/repository-cache'
+import { toast } from '@/components/ui/use-toast'
 
 // Repository and Organization interfaces
 export interface Repository {
@@ -85,8 +86,28 @@ export const repositoryAPI = {
       cacheRepositoryData.set('gitlab', page, perPage, response.data)
       
       return response.data
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching GitLab repositories:', error)
+      
+      // Handle authentication errors specifically
+      if (error.response?.status === 401) {
+        const errorMessage = error.response?.data?.message || error.message
+        if (errorMessage.includes('Please reconnect')) {
+          toast({
+            title: 'GitLab Authentication Expired',
+            description: 'Please reconnect your GitLab account in the settings.',
+            variant: 'destructive'
+          })
+          throw new Error('GitLab authentication has expired. Please reconnect your GitLab account in the settings.')
+        }
+        throw new Error('GitLab authentication failed. Please check your connection.')
+      }
+      
+      // Handle other errors
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message)
+      }
+      
       throw error
     }
   },
@@ -108,8 +129,28 @@ export const repositoryAPI = {
       cacheRepositoryData.set('bitbucket', page, perPage, response.data)
       
       return response.data
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching Bitbucket repositories:', error)
+      
+      // Handle authentication errors specifically
+      if (error.response?.status === 401) {
+        const errorMessage = error.response?.data?.message || error.message
+        if (errorMessage.includes('Please reconnect')) {
+          toast({
+            title: 'Bitbucket Authentication Expired',
+            description: 'Please reconnect your Bitbucket account in the settings.',
+            variant: 'destructive'
+          })
+          throw new Error('Bitbucket authentication has expired. Please reconnect your Bitbucket account in the settings.')
+        }
+        throw new Error('Bitbucket authentication failed. Please check your connection.')
+      }
+      
+      // Handle other errors
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message)
+      }
+      
       throw error
     }
   },

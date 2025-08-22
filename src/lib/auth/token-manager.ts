@@ -1,6 +1,6 @@
 // Token management utilities
 export class TokenManager {
-  private static readonly TOKEN_KEY = 'authToken'
+  private static readonly TOKEN_KEY = 'accessToken'
   private static readonly REFRESH_TOKEN_KEY = 'refreshToken'
 
   // Get authentication token

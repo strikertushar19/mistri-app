@@ -139,16 +139,55 @@ export function RepositoryDisplay({
   }
 
   if (error) {
+    const isAuthError = error.includes('authentication has expired') || error.includes('Please reconnect')
+    
     return (
       <div className="p-4 bg-[var(--bg-secondary)] border border-[var(--border-light)] rounded-lg">
-        <p className="text-[var(--text-secondary)] text-sm">{error}</p>
-        <Button 
-          onClick={() => fetchAllRepositories()} 
-          className="mt-2 text-xs"
-          variant="outline"
-        >
-          Retry
-        </Button>
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <Image
+              src={config.icon}
+              alt={`${config.name} icon`}
+              width={20}
+              height={20}
+              className="w-5 h-5"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[var(--text-secondary)] text-sm mb-2">{error}</p>
+            <div className="flex space-x-2">
+              {isAuthError ? (
+                <>
+                  <Button 
+                    onClick={() => window.location.href = '/settings'} 
+                    className="text-xs"
+                    variant="outline"
+                    size="sm"
+                  >
+                    Go to Settings
+                  </Button>
+                  <Button 
+                    onClick={() => fetchAllRepositories(true)} 
+                    className="text-xs"
+                    variant="outline"
+                    size="sm"
+                  >
+                    Retry
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => fetchAllRepositories(true)} 
+                  className="text-xs"
+                  variant="outline"
+                  size="sm"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -1,6 +1,6 @@
 // Code Analysis API Service
-// This file contains skeleton functions for code analysis operations
-// TODO: Implement actual API calls to backend services
+// This file contains functions for code analysis operations
+import { apiClient } from './client'
 
 export interface Repository {
   id: string
@@ -119,8 +119,8 @@ export const repositoryAPI = {
   }
 }
 
-// Analysis Management APIs
-export const analysisAPI = {
+// Analysis Management APIs (Legacy - keeping for compatibility)
+export const legacyAnalysisAPI = {
   // Get available analysis types
   async getAnalysisTypes(): Promise<AnalysisType[]> {
     // TODO: Implement API call to fetch analysis types
@@ -223,5 +223,139 @@ export const apiUtils = {
     }
     
     throw lastError
+  }
+}
+
+// Analysis API interfaces
+export interface AnalysisJob {
+  id: string
+  user_id: string
+  repository_url: string
+  repository_name: string
+  analysis_type: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  model_used: string
+  total_tokens: number
+  cost_estimate: number
+  started_at?: string
+  completed_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AnalysisResultDetail {
+  id: string
+  job_id: string
+  analysis_type: string
+  status: string
+  summary?: string
+  key_insights: string[]
+  created_at: string
+}
+
+export interface AnalysisDetailResponse {
+  job: AnalysisJob
+  result: AnalysisResultDetail
+  analysis_data: any
+  formatted_data: any
+}
+
+export interface AnalysisInsightsResponse {
+  job_id: string
+  repository_name: string
+  analysis_type: string
+  summary?: string
+  key_insights: string[]
+  recommendations: string[]
+  design_patterns: any[]
+  architecture: any
+  created_at: string
+}
+
+export interface AnalysisDiagramsResponse {
+  job_id: string
+  diagrams: any
+  created_at: string
+}
+
+// Analysis API functions
+export const analysisAPI = {
+  // Get detailed analysis result
+  async getAnalysisResult(jobId: string): Promise<AnalysisDetailResponse> {
+    try {
+      const response = await apiClient.get(`/analysis/jobs/${jobId}/result`)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // Get analysis insights
+  async getAnalysisInsights(jobId: string): Promise<AnalysisInsightsResponse> {
+    try {
+      const response = await apiClient.get(`/analysis/jobs/${jobId}/insights`)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // Get analysis diagrams
+  async getAnalysisDiagrams(jobId: string): Promise<AnalysisDiagramsResponse> {
+    try {
+      const response = await apiClient.get(`/analysis/jobs/${jobId}/diagrams`)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // List analysis jobs
+  async listAnalysisJobs(params?: {
+    status?: string
+    analysis_type?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ jobs: AnalysisJob[]; total: number }> {
+    try {
+      const response = await apiClient.get('/analysis/jobs', { params })
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // Get specific analysis job
+  async getAnalysisJob(jobId: string): Promise<AnalysisJob> {
+    try {
+      const response = await apiClient.get(`/analysis/jobs/${jobId}`)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // Create analysis chat context
+  async createAnalysisChatContext(data: {
+    conversation_id: string
+    job_id: string
+    context_type: string
+  }): Promise<any> {
+    try {
+      const response = await apiClient.post('/analysis/chat-context', data)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
+  },
+
+  // Get analysis chat context
+  async getAnalysisChatContext(conversationId: string): Promise<any> {
+    try {
+      const response = await apiClient.get(`/analysis/chat-context/${conversationId}`)
+      return response.data
+    } catch (error) {
+      throw new Error(apiUtils.handleError(error))
+    }
   }
 }

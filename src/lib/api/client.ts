@@ -13,7 +13,7 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get token from TokenManager
-    const token = localStorage.getItem('accessToken')
+    const token = TokenManager.getToken()
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -26,18 +26,51 @@ apiClient.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle common errors
+// Response interceptor to handle common errors and token refresh
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any
+
     // Handle authentication errors
-    if (error.response?.status === 401) {
-      // Clear tokens and redirect to login
-      TokenManager.clearAllTokens()
-      // You might want to redirect to login page here
-      // window.location.href = '/login'
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      // Try to refresh the token
+      const refreshToken = TokenManager.getRefreshToken()
+      if (refreshToken) {
+        try {
+          // Call refresh token endpoint
+          const refreshResponse = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh`, {
+            refresh_token: refreshToken
+          })
+
+          const { access_token, refresh_token } = refreshResponse.data
+
+          // Update tokens
+          TokenManager.setToken(access_token)
+          if (refresh_token) {
+            TokenManager.setRefreshToken(refresh_token)
+          }
+
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${access_token}`
+          return apiClient(originalRequest)
+        } catch (refreshError) {
+          // Refresh failed, clear tokens and redirect to login
+          console.error('Token refresh failed:', refreshError)
+          TokenManager.clearAllTokens()
+          window.location.href = '/login'
+          return Promise.reject(error)
+        }
+      } else {
+        // No refresh token available, clear tokens and redirect to login
+        TokenManager.clearAllTokens()
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
     }
     
     // Handle network errors
@@ -60,7 +93,13 @@ apiClient.interceptors.response.use(
     
     // Handle other errors
     const responseData = error.response.data as any
-    const errorMessage = responseData?.error || responseData?.message || API_ERRORS.UNKNOWN_ERROR
+    const errorMessage = responseData?.message || responseData?.error || API_ERRORS.UNKNOWN_ERROR
+    
+    // For authentication errors, preserve the specific message
+    if (error.response.status === 401) {
+      throw new Error(errorMessage)
+    }
+    
     throw new Error(errorMessage)
   }
 )

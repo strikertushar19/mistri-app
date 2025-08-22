@@ -78,6 +78,12 @@ export const authOptions: NextAuthOptions = {
         token.firstName = user.firstName
         token.lastName = user.lastName
         token.avatar = user.avatar
+        
+        // Store tokens in localStorage for API client access
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', user.accessToken)
+          localStorage.setItem('refreshToken', user.refreshToken)
+        }
       }
       return token
     },
@@ -89,6 +95,12 @@ export const authOptions: NextAuthOptions = {
         session.user.firstName = token.firstName
         session.user.lastName = token.lastName
         session.user.avatar = token.avatar
+        
+        // Ensure tokens are always available in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', token.accessToken)
+          localStorage.setItem('refreshToken', token.refreshToken)
+        }
       }
       return session
     }
@@ -101,6 +113,15 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  events: {
+    async signOut() {
+      // Clear localStorage on sign out
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+      }
+    }
+  }
 }
 
 

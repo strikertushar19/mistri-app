@@ -188,7 +188,7 @@ export function RepositoryTools({
       {/* Footer */}
       <div className="p-4 border-t border-[var(--border-light)] bg-[var(--bg-secondary)] rounded-b-lg">
         <p className="text-xs text-[var(--text-secondary)] text-center">
-          Click on repositories or organizations to add them to your chat context
+          Click on repositories to add or remove them from your chat context
         </p>
       </div>
     </div>

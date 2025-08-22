@@ -21,7 +21,7 @@ import { ModelSelector } from "./model-selector"
 import { LLDDemo } from "./lld-demo"
 import { conversationsApi, Conversation, Message } from "@/lib/api/conversations"
 import { chatApi, ChatRequest } from "@/lib/api/chat"
-import { umlDiagramApi } from "@/lib/api/uml-diagram"
+
 import { useSearchParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { toast } from "@/components/ui/use-toast"
@@ -114,8 +114,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   const [selectedRepositories, setSelectedRepositories] = useState<Repository[]>([])
   const [selectedOrganizations, setSelectedOrganizations] = useState<Organization[]>([])
   
-  // UML diagram generation state
-  const [generatingUML, setGeneratingUML] = useState(false)
+
   
   // LLD Demo state
   const [showLLDDemo, setShowLLDDemo] = useState(false)
@@ -171,134 +170,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
     }
   }, [currentConversation, messages, selectedModel, showHistory, renderHeader])
 
-  // Function to manually generate UML diagram for a specific repository path
-  const generateUMLForRepository = async (repoPath: string) => {
-    if (!repoPath.trim()) return
-    
-    setGeneratingUML(true)
-    
-    try {
-      const response = await umlDiagramApi.generateRepositoryDiagram(repoPath, 'png')
-      
-      if (response.success && response.image_url) {
-        // Add the UML diagram to the current message input
-        const imageReference = `\n\n![UML Diagram for ${repoPath}](${response.image_url})\n\n`
-        setContent(prev => prev + imageReference)
-        
-        toast({
-          title: "UML Diagram Generated",
-          description: `Generated UML diagram for ${repoPath}`,
-        })
-      } else {
-        toast({
-          title: "UML Generation Failed",
-          description: response.error || "Failed to generate UML diagram",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("Error generating UML diagram:", error)
-      toast({
-        title: "Error",
-        description: "Failed to generate UML diagram. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setGeneratingUML(false)
-    }
-  }
 
-  // Function to detect repository paths and PlantUML code in messages and generate UML diagrams
-  const detectAndGenerateUMLDiagrams = async (messageContent: string): Promise<string> => {
-    let processedContent = messageContent
-    let hasChanges = false
-    
-    // First, check for existing PlantUML code blocks that need to be converted to images
-    const plantUMLRegex = /@startuml[\s\S]*?@enduml/g
-    const plantUMLMatches = [...messageContent.matchAll(plantUMLRegex)]
-    
-    if (plantUMLMatches.length > 0) {
-      console.log("Found PlantUML code blocks in message, converting to images...")
-      console.log("Number of PlantUML blocks found:", plantUMLMatches.length)
-      setGeneratingUML(true)
-      
-      try {
-        for (const match of plantUMLMatches) {
-          const plantUMLCode = match[0]
-          console.log("Processing PlantUML code block:", plantUMLCode.substring(0, 100) + "...")
-          
-                     try {
-             // Generate UML diagram from PlantUML code using repository endpoint
-             const response = await umlDiagramApi.generateRepositoryDiagram(plantUMLCode, 'png')
-            
-            if (response.success && response.image_url) {
-              // Replace the PlantUML code with an image reference
-              const imageReference = `\n\n![UML Diagram](${response.image_url})\n\n`
-              processedContent = processedContent.replace(plantUMLCode, imageReference)
-              hasChanges = true
-              
-              toast({
-                title: "UML Diagram Generated",
-                description: "Converted PlantUML code to diagram",
-              })
-            } else {
-              console.warn("Failed to generate UML diagram from PlantUML code:", response.error)
-            }
-          } catch (error) {
-            console.error("Error generating UML diagram from PlantUML code:", error)
-          }
-        }
-      } finally {
-        setGeneratingUML(false)
-      }
-    }
-    
-    // Then check for repository paths that might be mentioned in messages
-    const repoPathRegex = /(?:repository|repo|path|directory|folder|analyze|generate UML for)\s*[:\s]*([\/\w\-\.]+)/gi
-    const repoMatches = [...processedContent.matchAll(repoPathRegex)]
-    
-    if (repoMatches.length > 0) {
-      console.log("Found repository paths in message, generating UML diagrams...")
-      setGeneratingUML(true)
-      
-      try {
-        for (const match of repoMatches) {
-          const repoPath = match[1]?.trim()
-          if (!repoPath || repoPath.length < 3) continue
-          
-          // Check if this looks like a valid repository path
-          if (repoPath.includes('/') || repoPath.includes('\\') || repoPath.includes('.')) {
-            console.log("Detected repository path in message:", repoPath)
-            
-            try {
-              // Generate UML diagram for the repository
-              const response = await umlDiagramApi.generateRepositoryDiagram(repoPath, 'png')
-              
-              if (response.success && response.image_url) {
-                // Replace the repository path mention with the UML diagram image
-                const imageReference = `\n\n![UML Diagram for ${repoPath}](${response.image_url})\n\n`
-                processedContent = processedContent.replace(match[0], imageReference)
-                hasChanges = true
-                
-                toast({
-                  title: "UML Diagram Generated",
-                  description: `Generated UML diagram for ${repoPath}`,
-                })
-              } else {
-                console.warn("Failed to generate UML diagram for:", repoPath, response.error)
-              }
-            } catch (error) {
-              console.error("Error generating UML diagram for", repoPath, ":", error)
-            }
-          }
-        }
-      } finally {
-        setGeneratingUML(false)
-      }
-    }
-    
-    return processedContent
-  }
+
+  
 
   const loadConversation = async (id: string) => {
     try {
@@ -324,39 +198,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
           })
         })
         
-        // Process messages to detect and generate UML diagrams
-        console.log("Processing messages for UML diagrams...")
-        const processedMessages = await Promise.all(
-          messageResponse.messages.map(async (msg, index) => {
-            console.log(`Processing message ${index}: role=${msg.role}, content length=${msg.content?.length || 0}`)
-            if (msg.role === 'assistant' && msg.content) {
-              console.log(`Message ${index} content preview:`, msg.content.substring(0, 200) + "...")
-              const processedContent = await detectAndGenerateUMLDiagrams(msg.content)
-              console.log(`Message ${index} processed, content changed:`, processedContent !== msg.content)
-              return { ...msg, content: processedContent }
-            }
-            return msg
-          })
-        )
+        setMessages(messageResponse.messages)
         
-        setMessages(processedMessages)
-        
-        // Debug: Test UML generation for any assistant message
-        const assistantMessages = processedMessages.filter(msg => msg.role === 'assistant')
-        if (assistantMessages.length > 0) {
-          console.log("Found assistant messages, testing UML generation...")
-          const testMessage = assistantMessages[0]
-          if (testMessage.content && testMessage.content.length > 100) {
-            console.log("Testing UML generation with first assistant message...")
-                         // Force a test call to see if API is working
-             try {
-               const testResponse = await umlDiagramApi.generateRepositoryDiagram(".", 'png')
-               console.log("Test UML generation response:", testResponse)
-             } catch (error) {
-               console.error("Test UML generation failed:", error)
-             }
-          }
-        }
+
       } else {
         console.error("Invalid messages response:", messageResponse)
         setMessages([])
@@ -389,32 +233,17 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   // Prompt templates for quick access
   const promptTemplates = [
     { label: "Code Review", prompt: "Please review this code for best practices, potential bugs, and improvements:" },
-    { label: "Architecture Analysis", prompt: "Analyze the architecture of this codebase and suggest improvements:" },
-    { label: "Performance Audit", prompt: "Conduct a performance audit of this code and suggest optimizations:" },
-    { label: "Security Review", prompt: "Review this code for security vulnerabilities and best practices:" },
     { label: "Documentation", prompt: "Generate comprehensive documentation for this code:" },
     { label: "Testing Strategy", prompt: "Suggest a testing strategy for this codebase:" },
     { label: "Refactoring", prompt: "Suggest refactoring opportunities for this code:" },
-    { label: "Dependency Analysis", prompt: "Analyze the dependencies and suggest improvements:" },
-    { label: "Repository Analysis", prompt: "Analyze the selected repositories and provide insights about the codebase structure, technologies used, and potential improvements:" },
-    { label: "LLD Analysis", prompt: "Perform a detailed Low-Level Design (LLD) analysis of this codebase including class diagrams, component architecture, and design patterns:" },
-    { label: "Design Patterns", prompt: "Identify and analyze design patterns used in this codebase:" },
-    { label: "API Documentation", prompt: "Generate comprehensive API documentation and specifications for this codebase:" },
-    { label: "Generate UML Diagram", prompt: "Generate UML class diagram for this repository:", action: "uml" }
+    { label: "Security Review", prompt: "Review this code for security vulnerabilities and best practices:" },
+    { label: "Performance Audit", prompt: "Conduct a performance audit of this code and suggest optimizations:" }
   ]
 
   const handleTemplateSelect = (prompt: string, label: string, action?: string) => {
-    if (action === "uml") {
-      // For UML generation, prompt user for repository path
-      const repoPath = window.prompt("Enter repository path to generate UML diagram:")
-      if (repoPath) {
-        generateUMLForRepository(repoPath)
-      }
-    } else {
-      setContent(prompt)
-      if (textareaRef.current) {
-        textareaRef.current.focus()
-      }
+    setContent(prompt)
+    if (textareaRef.current) {
+      textareaRef.current.focus()
     }
   }
 
@@ -427,8 +256,8 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       // Show loading toast for long-running operations
       if (selectedRepositories.length > 0) {
         toast({
-          title: "Processing repository analysis...",
-          description: "This may take a few minutes for complex analysis.",
+          title: "Processing repositories...",
+          description: "This may take a few moments.",
         })
       }
       
@@ -446,9 +275,6 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       // Send message to AI
       const response = await chatApi.sendMessage(chatRequest)
       
-      // Process UML diagrams in the AI response
-      const processedResponse = await detectAndGenerateUMLDiagrams(response.response)
-      
       // Update conversation and messages
       if (!currentConversation) {
         // Load the new conversation
@@ -457,10 +283,10 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
         // Reload messages for existing conversation
         const messageResponse = await conversationsApi.getMessages(currentConversation.id)
         
-        // Update the last message with processed UML diagrams if it's an assistant message
+        // Update the last message if it's an assistant message
         const updatedMessages = messageResponse.messages.map((msg, index) => {
           if (index === messageResponse.messages.length - 1 && msg.role === 'assistant') {
-            return { ...msg, content: processedResponse }
+            return { ...msg, content: response.response }
           }
           return msg
         })
@@ -670,17 +496,17 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
             )}
           </div>
         ) : (
-          <div className="space-y-4 p-4">
-            {messages.map((message) => (
-              <ErrorBoundary key={message.id}>
-                <ChatMessage
-                  message={message}
-                  onEdit={handleMessageEdit}
-                  onDelete={handleMessageDelete}
-                />
-              </ErrorBoundary>
-            ))}
-            <div ref={messagesEndRef} />
+          <div className="flex flex-col items-center space-y-4 p-4 w-full">
+            <div className="w-full max-w-4xl">
+              {messages.map((message) => (
+                <ErrorBoundary key={message.id}>
+                  <ChatMessage
+                    message={message}
+                  />
+                </ErrorBoundary>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
         )}
       </div>
@@ -707,7 +533,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                 sideOffset={4}
               >
                 <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
-                  Analysis Templates
+                  Quick Templates
                 </DropdownMenuLabel>
                 
                 <DropdownMenuSeparator className="h-px bg-token-border-light my-1" />
@@ -721,7 +547,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                     >
                       <div className="flex items-center">
                         <span className="mr-3 text-base opacity-70">
-                          {index === 0 ? '⚙️' : index === 1 ? '🏗️' : index === 2 ? '📋' : '🎨'}
+                          {index === 0 ? '⚙️' : index === 1 ? '📚' : index === 2 ? '🧪' : '🔧'}
                         </span>
                         <span className="font-medium">{template.label}</span>
                       </div>
@@ -732,7 +558,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                 <DropdownMenuSeparator className="h-px bg-token-border-light my-1" />
                 
                 <DropdownMenuGroup>
-                  {promptTemplates.slice(4, 8).map((template, index) => (
+                  {promptTemplates.slice(4, 7).map((template, index) => (
                     <DropdownMenuItem
                       key={index + 4}
                       onClick={() => handleTemplateSelect(template.prompt, template.label, (template as any).action)}
@@ -740,26 +566,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                     >
                       <div className="flex items-center">
                         <span className="mr-3 text-base opacity-70">
-                          {index === 0 ? '🔍' : index === 1 ? '📊' : index === 2 ? '⚡' : '🛡️'}
-                        </span>
-                        <span className="font-medium">{template.label}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
-  
-                <DropdownMenuSeparator className="h-px bg-token-border-light my-1" />
-                
-                <DropdownMenuGroup>
-                  {promptTemplates.slice(8, 12).map((template, index) => (
-                    <DropdownMenuItem
-                      key={index + 8}
-                      onClick={() => handleTemplateSelect(template.prompt, template.label, (template as any).action)}
-                      className="group cursor-pointer mx-1 my-0.5 px-3 py-2.5 rounded-lg text-[var(--text-primary)] text-sm hover:bg-[var(--interactive-bg-secondary-hover)] focus:bg-[var(--interactive-bg-secondary-hover)] transition-colors duration-150"
-                    >
-                      <div className="flex items-center">
-                        <span className="mr-3 text-base opacity-70">
-                          {index === 0 ? '📐' : index === 1 ? '🎯' : index === 2 ? '📚' : '📊'}
+                          {index === 0 ? '🛡️' : index === 1 ? '⚡' : '📊'}
                         </span>
                         <span className="font-medium">{template.label}</span>
                       </div>
@@ -767,23 +574,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                   ))}
                 </DropdownMenuGroup>
                 
-                {/* Repository Analysis Template - Only show when repositories are selected */}
-                {selectedRepositories.length > 0 && (
-                  <>
-                    <DropdownMenuSeparator className="h-px bg-token-border-light my-1" />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem
-                        onClick={() => handleTemplateSelect(promptTemplates[8].prompt, promptTemplates[8].label, (promptTemplates[8] as any).action)}
-                        className="group cursor-pointer mx-1 my-0.5 px-3 py-2.5 rounded-lg text-[var(--text-primary)] text-sm hover:bg-[var(--interactive-bg-secondary-hover)] focus:bg-[var(--interactive-bg-secondary-hover)] transition-colors duration-150"
-                      >
-                        <div className="flex items-center">
-                          <span className="mr-3 text-base opacity-70">📁</span>
-                          <span className="font-medium">{promptTemplates[8].label}</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </>
-                )}
+
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -807,15 +598,35 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                 <span>Context:</span>
               </div>
               {selectedRepositories.length > 0 && (
-                <span className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded">
-                  {selectedRepositories.length} repo{selectedRepositories.length !== 1 ? 's' : ''}
+                <span className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded text-[var(--text-secondary)]">
+                  {selectedRepositories.length}
                 </span>
               )}
               {selectedOrganizations.length > 0 && (
-                <span className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded">
-                  {selectedOrganizations.length} org{selectedOrganizations.length !== 1 ? 's' : ''}
+                <span className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded text-[var(--text-secondary)]">
+                  {selectedOrganizations.length}
                 </span>
               )}
+              <div className="flex flex-wrap items-center gap-1">
+                {selectedRepositories.map((repo, index) => (
+                  <span 
+                    key={`${repo.id}-${repo.full_name}`}
+                    className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded text-[var(--text-primary)] font-medium"
+                    title={`${repo.full_name}`}
+                  >
+                    {repo.full_name}
+                  </span>
+                ))}
+                {selectedOrganizations.map((org, index) => (
+                  <span 
+                    key={`${org.id}-${org.login}`}
+                    className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded text-[var(--text-primary)] font-medium"
+                    title={`${org.login}`}
+                  >
+                    {org.login}
+                  </span>
+                ))}
+              </div>
               <Button
                 onClick={clearAllContext}
                 variant="ghost"
@@ -862,13 +673,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
               )}
             </button>
             
-            {/* UML Generation Loading Indicator */}
-            {generatingUML && (
-              <div className="absolute -top-8 right-0 flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded border border-[var(--border-light)]">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>Generating UML diagrams...</span>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
