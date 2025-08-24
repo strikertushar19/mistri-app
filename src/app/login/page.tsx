@@ -41,7 +41,7 @@ export default function LoginPage() {
           title: "Login successful",
           description: "Welcome back!",
         })
-        router.push("/")
+        router.push("/chat")
       }
     } catch (error) {
       toast({

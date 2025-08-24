@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, BarChart3, GitBranch, Calendar, Code2, DollarSign } from 'lucide-react';
+import { ArrowLeft, BarChart3, GitBranch, Calendar, Code2, DollarSign, Shield, Zap, GitCommit, Layers, Activity, Download } from 'lucide-react';
 
 interface AnalysisComponent {
   name: string;
@@ -99,6 +99,31 @@ interface AnalysisData {
 
 // Mermaid types are defined in src/types/mermaid.d.ts
 
+// Tab component for better navigation
+const TabButton = ({ 
+  isActive, 
+  onClick, 
+  children, 
+  icon: Icon 
+}: { 
+  isActive: boolean; 
+  onClick: () => void; 
+  children: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+      isActive
+        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+    }`}
+  >
+    <Icon className="h-4 w-4" />
+    {children}
+  </button>
+);
+
 // Diagram Image Component for displaying generated images with zoom functionality
 const DiagramImageComponent = ({ image, title }: { image: any, title: string }) => {
   const [imageError, setImageError] = useState(false);
@@ -163,6 +188,44 @@ const DiagramImageComponent = ({ image, title }: { image: any, title: string }) 
     setZoom(prev => Math.max(0.25, Math.min(3, prev + delta)));
   };
 
+  const handleDownload = () => {
+    try {
+      if (image.image_format === 'svg') {
+        // For SVG, create a blob and download
+        const svgContent = atob(image.image_data);
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // For other formats, convert base64 to blob and download
+        const byteCharacters = atob(image.image_data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: `image/${image.image_format}` });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.${image.image_format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download image. Please try again.');
+    }
+  };
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <div className="flex items-center justify-between mb-3">
@@ -191,6 +254,14 @@ const DiagramImageComponent = ({ image, title }: { image: any, title: string }) 
             title="Reset View"
           >
             Reset
+          </button>
+          <button
+            onClick={handleDownload}
+            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+            title="Download Diagram"
+          >
+            <Download className="h-3 w-3" />
+            Download
           </button>
         </div>
       </div>
@@ -500,6 +571,43 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
     }
   }, [mermaidLoaded, diagram]);
 
+  const handleDownload = () => {
+    try {
+      if (elementRef.current) {
+        const svgElement = elementRef.current.querySelector('svg');
+        if (svgElement) {
+          // Get the SVG content
+          const svgContent = svgElement.outerHTML;
+          
+          // Create a blob and download
+          const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.svg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } else {
+          // If no SVG found, try to download the diagram code as text
+          const blob = new Blob([diagram], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.mermaid`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download diagram. Please try again.');
+    }
+  };
+
   if (!diagram || diagram.trim() === '') {
     return (
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -513,7 +621,17 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
-      <h3 className="font-medium text-gray-700 mb-3">{title}:</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-medium text-gray-700">{title}:</h3>
+        <button
+          onClick={handleDownload}
+          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+          title="Download Diagram"
+        >
+          <Download className="h-4 w-4" />
+          Download
+        </button>
+      </div>
       <div className="bg-white p-4 rounded border overflow-x-auto">
         {!mermaidLoaded ? (
           <div className="flex items-center justify-center py-8">
@@ -541,6 +659,7 @@ export default function AnalysisPage() {
   const [parsedAnalysis, setParsedAnalysis] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     if (analysisId) {
@@ -1005,6 +1124,531 @@ export default function AnalysisPage() {
     </div>
   );
 
+  // Tab configuration
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'architecture', label: 'Architecture', icon: Layers },
+    { id: 'components', label: 'Components', icon: GitCommit },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'performance', label: 'Performance', icon: Zap },
+    { id: 'algorithms', label: 'Algorithms', icon: Code2 },
+    { id: 'diagrams', label: 'Diagrams', icon: Activity },
+  ];
+
+  // Render content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            {/* Repository Overview */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                Repository Overview
+              </h2>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-medium text-gray-700">Name:</h3>
+                <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
+                
+                <h3 className="font-medium text-gray-700">Description:</h3>
+                <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.description || 'No description available'}</p>
+                
+                <h3 className="font-medium text-gray-700">Technology Stack:</h3>
+                <p className="text-gray-600">{parsedAnalysis.repository_overview?.main_technology || 'Not specified'}</p>
+              </div>
+            </section>
+
+            {/* Data Structures */}
+            {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Data Structures
+                </h2>
+                <div className="grid gap-4">
+                  {parsedAnalysis.detailed_design.data_structures.map((ds, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                      <h3 className="font-semibold text-lg text-green-600 mb-2">{ds.name}</h3>
+                      <p className="text-sm text-gray-500 mb-2">Type: {ds.type}</p>
+                      <p className="text-gray-600">{ds.purpose}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Design Patterns */}
+            {parsedAnalysis.design_patterns && parsedAnalysis.design_patterns.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Design Patterns
+                </h2>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {parsedAnalysis.design_patterns.map((pattern, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-purple-600 mr-2">•</span>
+                        <span className="text-gray-700">
+                          {typeof pattern === 'string' ? pattern : (
+                            <div className="space-y-1">
+                              {pattern.name && <div className="font-medium">{pattern.name}</div>}
+                              {pattern.description && <div className="text-sm text-gray-600">{pattern.description}</div>}
+                              {pattern.category && <div className="text-sm text-gray-600">Category: {pattern.category}</div>}
+                              {pattern.purpose && <div className="text-sm text-gray-600">Purpose: {pattern.purpose}</div>}
+                              {pattern.implementation && (
+                                <div className="text-sm text-gray-600">
+                                  Implementation: {typeof pattern.implementation === 'string' ? pattern.implementation : JSON.stringify(pattern.implementation)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            {/* Recommendations */}
+            {parsedAnalysis.recommendations && parsedAnalysis.recommendations.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Recommendations
+                </h2>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {parsedAnalysis.recommendations.map((rec, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-yellow-600 mr-2">•</span>
+                        <span className="text-gray-700">
+                          {typeof rec === 'string' ? rec : (
+                            <div className="space-y-2">
+                              {(rec as Recommendation).description && <div className="font-medium">{(rec as Recommendation).description}</div>}
+                              {(rec as Recommendation).category && <div className="text-sm text-gray-600">Category: {(rec as Recommendation).category}</div>}
+                              {(rec as Recommendation).priority && <div className="text-sm text-gray-600">Priority: {(rec as Recommendation).priority}</div>}
+                              {(rec as Recommendation).impact && <div className="text-sm text-gray-600">Impact: {(rec as Recommendation).impact}</div>}
+                              {(rec as Recommendation).rationale && <div className="text-sm text-gray-600">Rationale: {(rec as Recommendation).rationale}</div>}
+                              {(rec as Recommendation).implementation && (
+                                <div className="text-sm text-gray-600">
+                                  Implementation: {typeof (rec as Recommendation).implementation === 'string' ? (rec as Recommendation).implementation : JSON.stringify((rec as Recommendation).implementation)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      case 'architecture':
+        return (
+          <div className="space-y-6">
+            {/* System Architecture */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                System Architecture
+              </h2>
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-gray-700 mb-2">Overview:</h3>
+                  <p className="text-gray-600">{parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}</p>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-gray-700 mb-2">Data Flow:</h3>
+                  <p className="text-gray-600">{parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        );
+
+      case 'components':
+        return (
+          <div className="space-y-6">
+            {/* Components */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                Components
+              </h2>
+              <div className="grid gap-4">
+                {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 ? (
+                  parsedAnalysis.system_architecture.components.map((component, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                      <h3 className="font-semibold text-lg text-blue-600 mb-2">{component.name}</h3>
+                      <p className="text-gray-600 mb-3">{component.purpose}</p>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">Responsibilities:</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            {component.responsibilities?.map((resp, idx) => (
+                              <li key={idx}>{resp}</li>
+                            )) || <li>No responsibilities listed</li>}
+                          </ul>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">Dependencies:</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            {component.dependencies?.map((dep, idx) => (
+                              <li key={idx}>{dep}</li>
+                            )) || <li>No dependencies listed</li>}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <p className="text-gray-500 text-center py-4">No components information available</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        );
+
+      case 'security':
+        return (
+          <div className="space-y-6">
+            {/* Security Considerations */}
+            {parsedAnalysis.security_considerations && parsedAnalysis.security_considerations.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Security Considerations
+                </h2>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {parsedAnalysis.security_considerations.map((security, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-red-600 mr-2">•</span>
+                        <span className="text-gray-700">
+                          {typeof security === 'string' ? security : (
+                            <div className="space-y-1">
+                              {security.description && <div className="font-medium">{security.description}</div>}
+                              {security.category && <div className="text-sm text-gray-600">Category: {security.category}</div>}
+                              {security.priority && <div className="text-sm text-gray-600">Priority: {security.priority}</div>}
+                              {security.impact && <div className="text-sm text-gray-600">Impact: {security.impact}</div>}
+                              {security.implementation && (
+                                <div className="text-sm text-gray-600">
+                                  Implementation: {typeof security.implementation === 'string' ? security.implementation : JSON.stringify(security.implementation)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            {/* Error Handling */}
+            {parsedAnalysis.error_handling && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Error Handling
+                </h2>
+                <div className="space-y-4">
+                  {/* Exceptions */}
+                  {parsedAnalysis.error_handling.exceptions && parsedAnalysis.error_handling.exceptions.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <h3 className="font-medium text-red-800 mb-3">Exceptions:</h3>
+                      <div className="grid gap-4">
+                        {parsedAnalysis.error_handling.exceptions.map((exception, index) => (
+                          <div key={index} className="bg-white border border-red-200 rounded-lg p-3">
+                            <div className="font-medium text-red-700 mb-2">{exception.type}</div>
+                            <p className="text-sm text-gray-600 mb-2">{exception.description}</p>
+                            <div className="text-xs text-gray-500">
+                              <div><strong>Handling:</strong> {exception.handling}</div>
+                              <div><strong>Frequency:</strong> {exception.frequency}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Strategies */}
+                  {parsedAnalysis.error_handling.strategies && parsedAnalysis.error_handling.strategies.length > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h3 className="font-medium text-yellow-800 mb-3">Strategies:</h3>
+                      <div className="grid gap-4">
+                        {parsedAnalysis.error_handling.strategies.map((strategy, index) => (
+                          <div key={index} className="bg-white border border-yellow-200 rounded-lg p-3">
+                            <div className="font-medium text-yellow-700 mb-2">{strategy.strategy}</div>
+                            <p className="text-sm text-gray-600 mb-2">{strategy.description}</p>
+                            <div className="text-xs text-gray-500">
+                              <div><strong>Coverage:</strong> {strategy.coverage}</div>
+                              <div><strong>Effectiveness:</strong> {strategy.effectiveness}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error Analysis */}
+                  {parsedAnalysis.error_handling.error_analysis && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-medium text-gray-800 mb-3">Error Analysis:</h3>
+                      <div className="space-y-4">
+                        {parsedAnalysis.error_handling.error_analysis.gaps && (
+                          <div>
+                            <h4 className="font-medium text-gray-700 mb-2">Gaps:</h4>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {parsedAnalysis.error_handling.error_analysis.gaps.map((gap, index) => (
+                                <li key={index}>{gap}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {parsedAnalysis.error_handling.error_analysis.improvements && (
+                          <div>
+                            <h4 className="font-medium text-gray-700 mb-2">Improvements:</h4>
+                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                              {parsedAnalysis.error_handling.error_analysis.improvements.map((improvement, index) => (
+                                <li key={index}>{improvement}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {parsedAnalysis.error_handling.error_analysis.overall_strategy && (
+                          <div>
+                            <h4 className="font-medium text-gray-700 mb-2">Overall Strategy:</h4>
+                            <p className="text-sm text-gray-600">{parsedAnalysis.error_handling.error_analysis.overall_strategy}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      case 'performance':
+        return (
+          <div className="space-y-6">
+            {/* Performance Considerations */}
+            {parsedAnalysis.performance_considerations && parsedAnalysis.performance_considerations.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Performance Considerations
+                </h2>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {parsedAnalysis.performance_considerations.map((performance, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-blue-600 mr-2">•</span>
+                        <span className="text-gray-700">
+                          {typeof performance === 'string' ? performance : (
+                            <div className="space-y-1">
+                              {performance.description && <div className="font-medium">{performance.description}</div>}
+                              {performance.category && <div className="text-sm text-gray-600">Category: {performance.category}</div>}
+                              {performance.priority && <div className="text-sm text-gray-600">Priority: {performance.priority}</div>}
+                              {performance.impact && <div className="text-sm text-gray-600">Impact: {performance.impact}</div>}
+                              {performance.implementation && (
+                                <div className="text-sm text-gray-600">
+                                  Implementation: {typeof performance.implementation === 'string' ? performance.implementation : JSON.stringify(performance.implementation)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      case 'algorithms':
+        return (
+          <div className="space-y-6">
+            {/* Algorithms */}
+            {parsedAnalysis.algorithms && parsedAnalysis.algorithms.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Algorithms
+                </h2>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="grid gap-4">
+                    {parsedAnalysis.algorithms.map((algorithm, index) => (
+                      <div key={index} className="bg-white border border-green-200 rounded-lg p-4 shadow-sm">
+                        {typeof algorithm === 'string' ? (
+                          <div className="text-gray-700">{algorithm}</div>
+                        ) : (
+                          <div className="space-y-3">
+                            {(algorithm as Algorithm).name && (
+                              <div>
+                                <h4 className="font-semibold text-lg text-green-600">{(algorithm as Algorithm).name}</h4>
+                                {(algorithm as Algorithm).location && (
+                                  <p className="text-sm text-gray-500">Location: {(algorithm as Algorithm).location}</p>
+                                )}
+                              </div>
+                            )}
+                            {(algorithm as Algorithm).description && (
+                              <div>
+                                <h5 className="font-medium text-gray-700 mb-1">Description:</h5>
+                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).description}</p>
+                              </div>
+                            )}
+                            {(algorithm as Algorithm).complexity && (
+                              <div>
+                                <h5 className="font-medium text-gray-700 mb-1">Complexity:</h5>
+                                <div className="text-sm text-gray-600">
+                                  {(() => {
+                                    const complexity = (algorithm as Algorithm).complexity;
+                                    if (typeof complexity === 'string') {
+                                      return complexity;
+                                    } else if (complexity && typeof complexity === 'object') {
+                                      return (
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {complexity.time && <div><span className="font-medium">Time:</span> {complexity.time}</div>}
+                                          {complexity.space && <div><span className="font-medium">Space:</span> {complexity.space}</div>}
+                                          {complexity.best_case && <div><span className="font-medium">Best Case:</span> {complexity.best_case}</div>}
+                                          {complexity.average_case && <div><span className="font-medium">Average Case:</span> {complexity.average_case}</div>}
+                                          {complexity.worst_case && <div><span className="font-medium">Worst Case:</span> {complexity.worst_case}</div>}
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+                            {(algorithm as Algorithm).optimization_potential && (
+                              <div>
+                                <h5 className="font-medium text-gray-700 mb-1">Optimization Potential:</h5>
+                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).optimization_potential}</p>
+                              </div>
+                            )}
+                            {(algorithm as Algorithm).performance_characteristics && (
+                              <div>
+                                <h5 className="font-medium text-gray-700 mb-1">Performance Characteristics:</h5>
+                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).performance_characteristics}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      case 'diagrams':
+        return (
+          <div className="space-y-6">
+            {/* Architecture Diagrams */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                Architecture Diagrams
+              </h2>
+              
+              <div className="space-y-6">
+                {/* Component Diagram */}
+                {parsedAnalysis.mermaid_diagrams?.component_diagram ? (
+                  <MermaidDiagram 
+                    diagram={parsedAnalysis.mermaid_diagrams.component_diagram} 
+                    title="Component Diagram" 
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-3">Component Diagram:</h3>
+                    <div className="bg-white p-4 rounded border">
+                      <div className="text-gray-500 text-center py-4">No diagram available</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Sequence Diagram */}
+                {parsedAnalysis.mermaid_diagrams?.sequence_diagram ? (
+                  <MermaidDiagram 
+                    diagram={parsedAnalysis.mermaid_diagrams.sequence_diagram} 
+                    title="Sequence Diagram" 
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-3">Sequence Diagram:</h3>
+                    <div className="bg-white p-4 rounded border">
+                      <div className="text-gray-500 text-center py-4">No diagram available</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Activity Diagram */}
+                {parsedAnalysis.mermaid_diagrams?.activity_diagram ? (
+                  <MermaidDiagram 
+                    diagram={parsedAnalysis.mermaid_diagrams.activity_diagram} 
+                    title="Activity Diagram" 
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-3">Activity Diagram:</h3>
+                    <div className="bg-white p-4 rounded border">
+                      <div className="text-gray-500 text-center py-4">No diagram available</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Class Diagram */}
+                {parsedAnalysis.mermaid_diagrams?.class_diagram ? (
+                  <MermaidDiagram 
+                    diagram={parsedAnalysis.mermaid_diagrams.class_diagram} 
+                    title="Class Diagram" 
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-3">Class Diagram:</h3>
+                    <div className="bg-white p-4 rounded border">
+                      <div className="text-gray-500 text-center py-4">No diagram available</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Generated Diagram Images */}
+            {parsedAnalysis.diagram_images && Object.keys(parsedAnalysis.diagram_images).length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  Generated Diagram Images
+                </h2>
+                
+                <div className="space-y-6">
+                  {Object.entries(parsedAnalysis.diagram_images).map(([type, image]) => (
+                    <DiagramImageComponent 
+                      key={type}
+                      image={image} 
+                      title={type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} 
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      default:
+        return <div>Select a tab to view content</div>;
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -1091,7 +1735,7 @@ export default function AnalysisPage() {
         </div>
 
         {/* Timing and Cost Information */}
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
+        {/* <div className="bg-white rounded-lg p-4 shadow-sm border">
           <div className="flex items-center gap-2 mb-3">
             <DollarSign className="h-4 w-4 text-green-600" />
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Execution Details</h3>
@@ -1118,461 +1762,28 @@ export default function AnalysisPage() {
               <span className="ml-1 font-medium">${analysisData?.job?.cost_estimate || 0}</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
-                {/* Analysis Content */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
-          {/* Repository Overview */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-              Repository Overview
-            </h2>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-gray-700">Name:</h3>
-              <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
-              
-              <h3 className="font-medium text-gray-700">Description:</h3>
-              <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.description || 'No description available'}</p>
-              
-              <h3 className="font-medium text-gray-700">Technology Stack:</h3>
-              <p className="text-gray-600">{parsedAnalysis.repository_overview?.main_technology || 'Not specified'}</p>
+        {/* Tabbed Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="border-b border-gray-200">
+            <div className="flex space-x-1 p-4 overflow-x-auto">
+              {tabs.map((tab) => (
+                <TabButton
+                  key={tab.id}
+                  isActive={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  icon={tab.icon}
+                >
+                  {tab.label}
+                </TabButton>
+              ))}
             </div>
-          </section>
-
-          {/* System Architecture */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-              System Architecture
-            </h2>
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium text-gray-700 mb-2">Overview:</h3>
-                <p className="text-gray-600">{parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}</p>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium text-gray-700 mb-2">Data Flow:</h3>
-                <p className="text-gray-600">{parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Components */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-              Components
-            </h2>
-            <div className="grid gap-4">
-              {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 ? (
-                parsedAnalysis.system_architecture.components.map((component, index) => (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <h3 className="font-semibold text-lg text-blue-600 mb-2">{component.name}</h3>
-                    <p className="text-gray-600 mb-3">{component.purpose}</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium text-gray-700 mb-2">Responsibilities:</h4>
-                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                          {component.responsibilities?.map((resp, idx) => (
-                            <li key={idx}>{resp}</li>
-                          )) || <li>No responsibilities listed</li>}
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-gray-700 mb-2">Dependencies:</h4>
-                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                          {component.dependencies?.map((dep, idx) => (
-                            <li key={idx}>{dep}</li>
-                          )) || <li>No dependencies listed</li>}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                  <p className="text-gray-500 text-center py-4">No components information available</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Data Structures */}
-          {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Data Structures
-              </h2>
-              <div className="grid gap-4">
-                {parsedAnalysis.detailed_design.data_structures.map((ds, index) => (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <h3 className="font-semibold text-lg text-green-600 mb-2">{ds.name}</h3>
-                    <p className="text-sm text-gray-500 mb-2">Type: {ds.type}</p>
-                    <p className="text-gray-600">{ds.purpose}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Security Considerations */}
-          {parsedAnalysis.security_considerations && parsedAnalysis.security_considerations.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Security Considerations
-              </h2>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <ul className="space-y-2">
-                  {parsedAnalysis.security_considerations.map((security, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-red-600 mr-2">•</span>
-                      <span className="text-gray-700">
-                        {typeof security === 'string' ? security : (
-                          <div className="space-y-1">
-                            {security.description && <div className="font-medium">{security.description}</div>}
-                            {security.category && <div className="text-sm text-gray-600">Category: {security.category}</div>}
-                            {security.priority && <div className="text-sm text-gray-600">Priority: {security.priority}</div>}
-                            {security.impact && <div className="text-sm text-gray-600">Impact: {security.impact}</div>}
-                            {security.implementation && (
-                              <div className="text-sm text-gray-600">
-                                Implementation: {typeof security.implementation === 'string' ? security.implementation : JSON.stringify(security.implementation)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          )}
-
-          {/* Error Handling */}
-          {parsedAnalysis.error_handling && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Error Handling
-              </h2>
-              <div className="space-y-4">
-                {/* Exceptions */}
-                {parsedAnalysis.error_handling.exceptions && parsedAnalysis.error_handling.exceptions.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h3 className="font-medium text-red-800 mb-3">Exceptions:</h3>
-                    <div className="grid gap-4">
-                      {parsedAnalysis.error_handling.exceptions.map((exception, index) => (
-                        <div key={index} className="bg-white border border-red-200 rounded-lg p-3">
-                          <div className="font-medium text-red-700 mb-2">{exception.type}</div>
-                          <p className="text-sm text-gray-600 mb-2">{exception.description}</p>
-                          <div className="text-xs text-gray-500">
-                            <div><strong>Handling:</strong> {exception.handling}</div>
-                            <div><strong>Frequency:</strong> {exception.frequency}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Strategies */}
-                {parsedAnalysis.error_handling.strategies && parsedAnalysis.error_handling.strategies.length > 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h3 className="font-medium text-yellow-800 mb-3">Strategies:</h3>
-                    <div className="grid gap-4">
-                      {parsedAnalysis.error_handling.strategies.map((strategy, index) => (
-                        <div key={index} className="bg-white border border-yellow-200 rounded-lg p-3">
-                          <div className="font-medium text-yellow-700 mb-2">{strategy.strategy}</div>
-                          <p className="text-sm text-gray-600 mb-2">{strategy.description}</p>
-                          <div className="text-xs text-gray-500">
-                            <div><strong>Coverage:</strong> {strategy.coverage}</div>
-                            <div><strong>Effectiveness:</strong> {strategy.effectiveness}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Error Analysis */}
-                {parsedAnalysis.error_handling.error_analysis && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-800 mb-3">Error Analysis:</h3>
-                    <div className="space-y-4">
-                      {parsedAnalysis.error_handling.error_analysis.gaps && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Gaps:</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                            {parsedAnalysis.error_handling.error_analysis.gaps.map((gap, index) => (
-                              <li key={index}>{gap}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {parsedAnalysis.error_handling.error_analysis.improvements && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Improvements:</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                            {parsedAnalysis.error_handling.error_analysis.improvements.map((improvement, index) => (
-                              <li key={index}>{improvement}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {parsedAnalysis.error_handling.error_analysis.overall_strategy && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Overall Strategy:</h4>
-                          <p className="text-sm text-gray-600">{parsedAnalysis.error_handling.error_analysis.overall_strategy}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* Performance Considerations */}
-          {parsedAnalysis.performance_considerations && parsedAnalysis.performance_considerations.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Performance Considerations
-              </h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <ul className="space-y-2">
-                  {parsedAnalysis.performance_considerations.map((performance, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-blue-600 mr-2">•</span>
-                      <span className="text-gray-700">
-                        {typeof performance === 'string' ? performance : (
-                          <div className="space-y-1">
-                            {performance.description && <div className="font-medium">{performance.description}</div>}
-                            {performance.category && <div className="text-sm text-gray-600">Category: {performance.category}</div>}
-                            {performance.priority && <div className="text-sm text-gray-600">Priority: {performance.priority}</div>}
-                            {performance.impact && <div className="text-sm text-gray-600">Impact: {performance.impact}</div>}
-                            {performance.implementation && (
-                              <div className="text-sm text-gray-600">
-                                Implementation: {typeof performance.implementation === 'string' ? performance.implementation : JSON.stringify(performance.implementation)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          )}
-
-          {/* Design Patterns */}
-          {parsedAnalysis.design_patterns && parsedAnalysis.design_patterns.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Design Patterns
-              </h2>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <ul className="space-y-2">
-                  {parsedAnalysis.design_patterns.map((pattern, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-purple-600 mr-2">•</span>
-                      <span className="text-gray-700">
-                        {typeof pattern === 'string' ? pattern : (
-                          <div className="space-y-1">
-                            {pattern.name && <div className="font-medium">{pattern.name}</div>}
-                            {pattern.description && <div className="text-sm text-gray-600">{pattern.description}</div>}
-                            {pattern.category && <div className="text-sm text-gray-600">Category: {pattern.category}</div>}
-                            {pattern.purpose && <div className="text-sm text-gray-600">Purpose: {pattern.purpose}</div>}
-                            {pattern.implementation && (
-                              <div className="text-sm text-gray-600">
-                                Implementation: {typeof pattern.implementation === 'string' ? pattern.implementation : JSON.stringify(pattern.implementation)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          )}
-
-          {/* Algorithms */}
-          {parsedAnalysis.algorithms && parsedAnalysis.algorithms.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Algorithms
-              </h2>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="grid gap-4">
-                  {parsedAnalysis.algorithms.map((algorithm, index) => (
-                    <div key={index} className="bg-white border border-green-200 rounded-lg p-4 shadow-sm">
-                      {typeof algorithm === 'string' ? (
-                        <div className="text-gray-700">{algorithm}</div>
-                      ) : (
-                        <div className="space-y-3">
-                          {(algorithm as Algorithm).name && (
-                            <div>
-                              <h4 className="font-semibold text-lg text-green-600">{(algorithm as Algorithm).name}</h4>
-                              {(algorithm as Algorithm).location && (
-                                <p className="text-sm text-gray-500">Location: {(algorithm as Algorithm).location}</p>
-                              )}
-                            </div>
-                          )}
-                          {(algorithm as Algorithm).description && (
-                            <div>
-                              <h5 className="font-medium text-gray-700 mb-1">Description:</h5>
-                              <p className="text-sm text-gray-600">{(algorithm as Algorithm).description}</p>
-                            </div>
-                          )}
-                          {(algorithm as Algorithm).complexity && (
-                            <div>
-                              <h5 className="font-medium text-gray-700 mb-1">Complexity:</h5>
-                              <div className="text-sm text-gray-600">
-                                {(() => {
-                                  const complexity = (algorithm as Algorithm).complexity;
-                                  if (typeof complexity === 'string') {
-                                    return complexity;
-                                  } else if (complexity && typeof complexity === 'object') {
-                                    return (
-                                      <div className="grid grid-cols-2 gap-2">
-                                        {complexity.time && <div><span className="font-medium">Time:</span> {complexity.time}</div>}
-                                        {complexity.space && <div><span className="font-medium">Space:</span> {complexity.space}</div>}
-                                        {complexity.best_case && <div><span className="font-medium">Best Case:</span> {complexity.best_case}</div>}
-                                        {complexity.average_case && <div><span className="font-medium">Average Case:</span> {complexity.average_case}</div>}
-                                        {complexity.worst_case && <div><span className="font-medium">Worst Case:</span> {complexity.worst_case}</div>}
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                })()}
-                              </div>
-                            </div>
-                          )}
-                          {(algorithm as Algorithm).optimization_potential && (
-                            <div>
-                              <h5 className="font-medium text-gray-700 mb-1">Optimization Potential:</h5>
-                              <p className="text-sm text-gray-600">{(algorithm as Algorithm).optimization_potential}</p>
-                            </div>
-                          )}
-                          {(algorithm as Algorithm).performance_characteristics && (
-                            <div>
-                              <h5 className="font-medium text-gray-700 mb-1">Performance Characteristics:</h5>
-                              <p className="text-sm text-gray-600">{(algorithm as Algorithm).performance_characteristics}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Recommendations */}
-          {parsedAnalysis.recommendations && parsedAnalysis.recommendations.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                Recommendations
-              </h2>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <ul className="space-y-2">
-                  {parsedAnalysis.recommendations.map((rec, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-yellow-600 mr-2">•</span>
-                      <span className="text-gray-700">
-                        {typeof rec === 'string' ? rec : (
-                          <div className="space-y-2">
-                            {(rec as Recommendation).description && <div className="font-medium">{(rec as Recommendation).description}</div>}
-                            {(rec as Recommendation).category && <div className="text-sm text-gray-600">Category: {(rec as Recommendation).category}</div>}
-                            {(rec as Recommendation).priority && <div className="text-sm text-gray-600">Priority: {(rec as Recommendation).priority}</div>}
-                            {(rec as Recommendation).impact && <div className="text-sm text-gray-600">Impact: {(rec as Recommendation).impact}</div>}
-                            {(rec as Recommendation).rationale && <div className="text-sm text-gray-600">Rationale: {(rec as Recommendation).rationale}</div>}
-                            {(rec as Recommendation).implementation && (
-                              <div className="text-sm text-gray-600">
-                                Implementation: {typeof (rec as Recommendation).implementation === 'string' ? (rec as Recommendation).implementation : JSON.stringify((rec as Recommendation).implementation)}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          )}
-
-          {/* Architecture Diagrams */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-              Architecture Diagrams
-            </h2>
-            
-            <div className="space-y-6">
-              {/* Component Diagram */}
-              {parsedAnalysis.mermaid_diagrams?.component_diagram ? (
-                <MermaidDiagram 
-                  diagram={parsedAnalysis.mermaid_diagrams.component_diagram} 
-                  title="Component Diagram" 
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-3">Component Diagram:</h3>
-                  <div className="bg-white p-4 rounded border">
-                    <div className="text-gray-500 text-center py-4">No diagram available</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Sequence Diagram */}
-              {parsedAnalysis.mermaid_diagrams?.sequence_diagram ? (
-                <MermaidDiagram 
-                  diagram={parsedAnalysis.mermaid_diagrams.sequence_diagram} 
-                  title="Sequence Diagram" 
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-3">Sequence Diagram:</h3>
-                  <div className="bg-white p-4 rounded border">
-                    <div className="text-gray-500 text-center py-4">No diagram available</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Activity Diagram */}
-              {parsedAnalysis.mermaid_diagrams?.activity_diagram ? (
-                <MermaidDiagram 
-                  diagram={parsedAnalysis.mermaid_diagrams.activity_diagram} 
-                  title="Activity Diagram" 
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-3">Activity Diagram:</h3>
-                  <div className="bg-white p-4 rounded border">
-                    <div className="text-gray-500 text-center py-4">No diagram available</div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Class Diagram */}
-              {parsedAnalysis.mermaid_diagrams?.class_diagram ? (
-                <MermaidDiagram 
-                  diagram={parsedAnalysis.mermaid_diagrams.class_diagram} 
-                  title="Class Diagram" 
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-3">Class Diagram:</h3>
-                  <div className="bg-white p-4 rounded border">
-                    <div className="text-gray-500 text-center py-4">No diagram available</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+          </div>
+          
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
         </div>
       </div>
     </DashboardLayout>

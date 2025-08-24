@@ -54,15 +54,6 @@ export interface ChatResponse {
   message_id: string
   response: string
   model: string
-  cost?: {
-    provider: string
-    model: string
-    input_tokens: number
-    output_tokens: number
-    input_cost: number
-    output_cost: number
-    total_cost: number
-  }
   timestamp: string
 }
 

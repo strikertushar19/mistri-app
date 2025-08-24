@@ -43,7 +43,7 @@ export default function AuthCallbackPage() {
             title: "Authentication successful",
             description: "Welcome!",
           })
-          router.push("/")
+          router.push("/chat")
         } else {
           toast({
             title: "Authentication failed",

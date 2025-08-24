@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { analysisAPI, AnalysisJob } from '@/lib/api/code-analysis';
@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectTrigger, SelectValue } from '@/components/ui/select';
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { cn } from "@/lib/utils";
 import { 
   BarChart3, 
   Clock, 
@@ -26,6 +28,24 @@ import {
   Settings,
   Eye
 } from 'lucide-react';
+
+// Custom SelectItem component without tick marks
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+));
+SelectItem.displayName = SelectPrimitive.Item.displayName;
 
 export default function AnalysisListPage() {
   const router = useRouter();
@@ -124,9 +144,7 @@ export default function AnalysisListPage() {
     });
   };
 
-  const formatCost = (cost: number) => {
-    return `$${cost.toFixed(6)}`;
-  };
+
 
   const viewAnalysis = (jobId: string) => {
     router.push(`/analysis/${jobId}`);
@@ -319,11 +337,9 @@ export default function AnalysisListPage() {
               </div>
             </div>
             
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>Model: {job.model_used}</span>
-                            <span>Tokens: {job.total_tokens.toLocaleString()}</span>
-                            <span>Cost: {formatCost(job.cost_estimate)}</span>
-                  </div>
+                          </div>
                 </div>
 
                         <div className="flex items-center gap-2 ml-4">

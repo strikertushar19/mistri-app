@@ -9,6 +9,67 @@ import { cn } from "@/lib/utils"
 import { Markdown } from "@/components/ui/markdown"
 import { AnalysisResult, isAnalysisResultMessage, extractAnalysisDataFromMessage } from "./analysis-result"
 
+// Function to clean markdown content by removing code block wrappers but preserving outer text
+function cleanMarkdownContent(content: string): string {
+  if (!content) return content
+  
+  let cleaned = content.trim()
+  
+  // Check if content contains code blocks
+  if (cleaned.includes('```')) {
+    console.log('Found code blocks in content, cleaning...')
+    console.log('Original content:', content.substring(0, 200) + '...')
+    
+    // Find the first and last code block positions
+    const firstBackticks = cleaned.indexOf('```')
+    const lastBackticks = cleaned.lastIndexOf('```')
+    
+    if (firstBackticks !== -1 && lastBackticks !== -1 && lastBackticks > firstBackticks) {
+      // Get text before the code block
+      const beforeCodeBlock = cleaned.substring(0, firstBackticks).trim()
+      
+      // Get text after the code block
+      const afterCodeBlock = cleaned.substring(lastBackticks + 3).trim()
+      
+      // Extract content from inside the code block
+      const startIndex = cleaned.indexOf('\n', firstBackticks)
+      let codeBlockContent = ''
+      if (startIndex !== -1) {
+        codeBlockContent = cleaned.substring(startIndex + 1, lastBackticks).trim()
+      }
+      
+      // Combine all parts: before + code content + after
+      const parts = []
+      if (beforeCodeBlock) parts.push(beforeCodeBlock)
+      if (codeBlockContent) parts.push(codeBlockContent)
+      if (afterCodeBlock) parts.push(afterCodeBlock)
+      
+      cleaned = parts.join('\n\n')
+      console.log('Preserved outer text and extracted code block content')
+    } else {
+      console.log('Using fallback method')
+      // Fallback: try to remove opening and closing markers
+      // Remove opening code block markers
+      if (cleaned.startsWith('```')) {
+        const lines = cleaned.split('\n')
+        if (lines.length > 1) {
+          // Skip the first line (```markdown or ```)
+          cleaned = lines.slice(1).join('\n')
+        }
+      }
+      
+      // Remove closing code block markers
+      if (cleaned.endsWith('```')) {
+        cleaned = cleaned.slice(0, -3)
+      }
+    }
+    
+    console.log('Cleaned content:', cleaned.substring(0, 200) + '...')
+  }
+  
+  return cleaned.trim()
+}
+
 interface ChatMessageProps {
   message: ConversationMessage
   // onEdit?: (messageId: string, newContent: string) => void
@@ -66,7 +127,6 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
   }
 
   const metadata = parseMetadata(message.metadata)
-  const cost = metadata?.cost
 
   return (
     <div className={cn("group relative mb-6 w-full", className)}>
@@ -219,7 +279,7 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-lg p-2 text-[var(--text-primary)] prose break-words whitespace-normal">
+                  <div className="rounded-lg p-2 text-[var(--text-primary)] prose prose-sm max-w-none break-words whitespace-normal">
                     {isAnalysisResultMessage(message.content) ? (
                       (() => {
                         const analysisData = extractAnalysisDataFromMessage(message.content)
@@ -234,13 +294,13 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
                           />
                         ) : (
                           <Markdown>
-                            {message.content || "No content available"}
+                            {cleanMarkdownContent(message.content) || "No content available"}
                           </Markdown>
                         )
                       })()
                     ) : (
                       <Markdown>
-                        {message.content || "No content available"}
+                        {cleanMarkdownContent(message.content) || "No content available"}
                       </Markdown>
                     )}
                   </div>
@@ -272,18 +332,10 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
                 </div>
 
                 {/* Message Metadata */}
-                {(cost || message.model_used || message.token_count) && (
+                {message.model_used && (
                   <div className="mt-4 pt-4 border-t border-[var(--border-light)]">
                     <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
-                      {message.model_used && (
-                        <span>Model: {message.model_used}</span>
-                      )}
-                      {message.token_count && (
-                        <span>Tokens: {message.token_count}</span>
-                      )}
-                      {cost && (
-                        <span>Cost: ${cost.total_cost.toFixed(6)}</span>
-                      )}
+                      <span>Model: {message.model_used}</span>
                     </div>
                   </div>
                 )}

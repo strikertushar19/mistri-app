@@ -235,8 +235,6 @@ export interface AnalysisJob {
   analysis_type: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   model_used: string
-  total_tokens: number
-  cost_estimate: number
   started_at?: string
   completed_at?: string
   created_at: string
