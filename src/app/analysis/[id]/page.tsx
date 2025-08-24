@@ -10,6 +10,8 @@ interface AnalysisComponent {
   purpose: string;
   responsibilities: string[];
   dependencies: string[];
+  technology?: string;
+  interfaces?: string[];
 }
 
 interface DiagramImage {
@@ -48,6 +50,14 @@ interface Algorithm {
   performance_characteristics?: string;
 }
 
+interface PerformanceConsideration {
+  aspect: string;
+  metrics: string;
+  bottlenecks: string[];
+  optimizations: string[];
+  current_implementation: string;
+}
+
 interface AnalysisData {
   analysis_type: string;
   repository_overview: {
@@ -59,6 +69,8 @@ interface AnalysisData {
     overview: string;
     components: AnalysisComponent[];
     data_flow: string;
+    deployment_model?: string;
+    scalability_approach?: string;
   };
   detailed_design: {
     classes: any[];
@@ -81,7 +93,7 @@ interface AnalysisData {
     };
   };
   security_considerations: (string | Recommendation)[];
-  performance_considerations: (string | Recommendation)[];
+  performance_considerations: (string | PerformanceConsideration)[];
   recommendations: (string | Recommendation)[];
   mermaid_diagrams?: {
     class_diagram?: string;
@@ -340,38 +352,12 @@ const DiagramImageComponent = ({ image, title }: { image: any, title: string }) 
   );
 };
 
-// Enhanced Mermaid Diagram Component with better error handling
+// Simple Mermaid Diagram Component
 const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const [mermaidLoaded, setMermaidLoaded] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
-    // Add CSS to hide Mermaid error messages
-    const style = document.createElement('style');
-    style.setAttribute('data-mermaid-error-suppression', 'true');
-    style.textContent = `
-      .mermaid-error,
-      .mermaid-error-message,
-      [class*="error"],
-      [class*="syntax-error"],
-      [class*="parse-error"] {
-        display: none !important;
-      }
-      
-      /* Hide any text that contains error messages */
-      div:contains("Syntax error"),
-      div:contains("Parse error"),
-      div:contains("Mermaid"),
-      span:contains("Syntax error"),
-      span:contains("Parse error"),
-      span:contains("Mermaid") {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-
     // Load Mermaid from CDN
     const loadMermaid = async () => {
       if (window.mermaid) {
@@ -382,347 +368,47 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js';
       script.onload = () => {
-        // Completely suppress ALL Mermaid error logging
-        const originalConsoleError = console.error;
-        const originalConsoleWarn = console.warn;
-        
-        console.error = (...args) => {
-          // Block ALL Mermaid-related errors completely - more aggressive filtering
-          const firstArg = args[0];
-          const secondArg = args[1];
-          
-          // Check if it's a Mermaid error by examining all arguments
-          const isMermaidError = args.some(arg => {
-            if (typeof arg === 'string') {
-              return arg.includes('Mermaid') || 
-                     arg.includes('Parse error') || 
-                     arg.includes('Syntax error') ||
-                     arg.includes('Error parsing') ||
-                     arg.includes('Error executing') ||
-                     arg.includes('Expecting') ||
-                     arg.includes('got');
-            }
-            if (arg && typeof arg === 'object' && arg.message) {
-              return arg.message.includes('Parse error') ||
-                     arg.message.includes('Syntax error') ||
-                     arg.message.includes('Expecting') ||
-                     arg.message.includes('got');
-            }
-            return false;
-          });
-          
-          if (isMermaidError) {
-            return; // Block ALL Mermaid errors completely
-          }
-          
-          // Only log non-Mermaid errors
-          originalConsoleError(...args);
-        };
-        
-        console.warn = (...args) => {
-          // Block ALL Mermaid-related warnings completely - more aggressive filtering
-          const isMermaidWarning = args.some(arg => {
-            if (typeof arg === 'string') {
-              return arg.includes('Mermaid') || 
-                     arg.includes('Parse error') || 
-                     arg.includes('Syntax error') ||
-                     arg.includes('Error parsing') ||
-                     arg.includes('Error executing') ||
-                     arg.includes('Expecting') ||
-                     arg.includes('got');
-            }
-            if (arg && typeof arg === 'object' && arg.message) {
-              return arg.message.includes('Parse error') ||
-                     arg.message.includes('Syntax error') ||
-                     arg.message.includes('Expecting') ||
-                     arg.message.includes('got');
-            }
-            return false;
-          });
-          
-          if (isMermaidWarning) {
-            return; // Block ALL Mermaid warnings completely
-          }
-          
-          // Only log non-Mermaid warnings
-          originalConsoleWarn(...args);
-        };
-
         window.mermaid.initialize({
           startOnLoad: true,
           theme: 'default',
-          securityLevel: 'loose',
-          logLevel: 'error',
-          flowchart: {
-            htmlLabels: false,
-            curve: 'basis'
-          }
+          securityLevel: 'loose'
         });
-        
-        // Set up a mutation observer to remove any error messages Mermaid might inject
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                const element = node as Element;
-                // Remove any elements containing error messages
-                if (element.textContent && (
-                  element.textContent.includes('Syntax error') ||
-                  element.textContent.includes('Parse error') ||
-                  element.textContent.includes('Mermaid') ||
-                  element.textContent.includes('Error:')
-                )) {
-                  element.remove();
-                }
-                // Also check for error-related classes
-                if (element.className && typeof element.className === 'string' && (
-                  element.className.includes('error') ||
-                  element.className.includes('syntax') ||
-                  element.className.includes('parse')
-                )) {
-                  element.remove();
-                }
-              }
-            });
-          });
-        });
-        
-        // Start observing the document body for any new error messages
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-        
         setMermaidLoaded(true);
       };
       script.onerror = () => {
-        setIsLoading(false);
+        console.error('Failed to load Mermaid');
       };
       document.head.appendChild(script);
     };
 
     loadMermaid();
-    
-    // Cleanup function
-    return () => {
-      // Remove the style element
-      const styleElement = document.querySelector('style[data-mermaid-error-suppression]');
-      if (styleElement) {
-        styleElement.remove();
-      }
-    };
   }, []);
-
-  // Function to validate Mermaid syntax by attempting to render
-  const validateMermaidSyntax = async (diagram: string): Promise<boolean> => {
-    if (!diagram || diagram.trim() === '') {
-      return false;
-    }
-
-    try {
-      // Try to render a test diagram to validate syntax
-      const testId = `test-${Math.random().toString(36).substr(2, 9)}`;
-      const result = await window.mermaid.render(testId, diagram);
-      return !!result.svg; // If we get SVG, syntax is valid
-    } catch (error) {
-      // If render fails, diagram is invalid
-      return false;
-    }
-  };
-
-  // Add error tracking state
-  const [hasError, setHasError] = useState(false);
-  const [errorDetails, setErrorDetails] = useState<string>('');
-
-  // Expose error state to parent component
-  useEffect(() => {
-    if (hasError) {
-      // Log which diagram component failed with clear identification
-      console.log(`❌ Diagram component failed: ${title}`, {
-        componentType: title,
-        diagramPreview: diagram.substring(0, 100) + '...',
-        error: errorDetails,
-        fullDiagram: diagram
-      });
-    }
-  }, [hasError, errorDetails, title, diagram]);
-
-  // Function to clean and fix common Mermaid syntax issues
-  const cleanDiagram = (rawDiagram: string): string => {
-    if (!rawDiagram || rawDiagram.trim() === '') {
-      return '';
-    }
-
-    // First, unescape the string literals from JSON
-    let cleaned = rawDiagram
-      .replace(/\\n/g, '\n')
-      .replace(/\\t/g, '\t')
-      .replace(/\\"/g, '"')
-      .replace(/\\'/g, "'")
-      .trim();
-
-    // Fix incomplete node definitions (missing closing brackets)
-    if (cleaned.includes('[') && !cleaned.includes(']')) {
-      const lines = cleaned.split('\n');
-      const fixedLines = lines.map(line => {
-        if (line.includes('[') && !line.includes(']')) {
-          // Find the last incomplete bracket and close it
-          const lastOpenBracket = line.lastIndexOf('[');
-          if (lastOpenBracket !== -1) {
-            const afterBracket = line.substring(lastOpenBracket + 1);
-            if (!afterBracket.includes(']')) {
-              // Extract the node content and close it
-              const nodeContent = afterBracket.split(/\s/)[0] || 'Node';
-              return line.substring(0, lastOpenBracket + 1) + nodeContent + ']';
-            }
-          }
-        }
-        return line;
-      });
-      cleaned = fixedLines.join('\n');
-    }
-
-    // Fix incomplete class definitions (missing closing brace)
-    if (cleaned.includes('class ') && cleaned.includes('{') && !cleaned.includes('}')) {
-      cleaned += '\n}';
-    }
-
-    // Fix incomplete sequence diagrams
-    if (cleaned.includes('sequenceDiagram')) {
-      const lines = cleaned.split('\n');
-      const participantLines = lines.filter(line => line.includes('participant'));
-      
-      if (participantLines.length > 0) {
-        // Find message lines
-        const messageLines = lines.filter(line => line.includes('->>') || line.includes('-->>'));
-        
-        if (messageLines.length > 0) {
-          const firstParticipant = participantLines[0].split(/\s+/)[1];
-          
-          // Add activate/deactivate if missing
-          if (!cleaned.includes('activate')) {
-            const firstMessageIndex = lines.findIndex(line => line.includes('->>'));
-            if (firstMessageIndex !== -1) {
-              lines.splice(firstMessageIndex + 1, 0, `    activate ${firstParticipant}`);
-            }
-          }
-          
-          if (!cleaned.includes('deactivate')) {
-            const lastMessageIndex = lines.findLastIndex(line => line.includes('-->>'));
-            if (lastMessageIndex !== -1) {
-              lines.splice(lastMessageIndex + 1, 0, `    deactivate ${firstParticipant}`);
-            }
-          }
-          
-          cleaned = lines.join('\n');
-        }
-      }
-    }
-
-    // Fix incomplete flowchart arrows
-    if (cleaned.includes('-->') && !cleaned.includes(';')) {
-      const lines = cleaned.split('\n');
-      const fixedLines = lines.map(line => {
-        if (line.includes('-->') && !line.includes(';')) {
-          return line + ';';
-        }
-        return line;
-      });
-      cleaned = fixedLines.join('\n');
-    }
-
-    // Remove problematic trailing characters
-    cleaned = cleaned.replace(/\s*--\s*$/, '');
-    cleaned = cleaned.replace(/\s*-->\s*$/, '');
-    cleaned = cleaned.replace(/\s*\[\s*$/, '');
-    cleaned = cleaned.replace(/\s*\(\s*$/, '');
-
-    return cleaned;
-  };
-
-  // Function to handle recursive sequence diagrams that cause "too much recursion" errors
-  const fixRecursiveSequenceDiagram = (diagram: string): string => {
-    if (!diagram.includes('sequenceDiagram')) {
-      return diagram;
-    }
-
-    // Only apply fixes if the diagram is actually causing recursion issues
-    // For now, just return the diagram as-is since the syntax looks correct
-    return diagram;
-  };
 
   useEffect(() => {
     if (mermaidLoaded && diagram && elementRef.current) {
-      setIsLoading(true);
+      const diagramId = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
       
-      // Clear previous content and show loading
-      elementRef.current.innerHTML = `
-        <div class="flex items-center justify-center py-8">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
-          <div class="text-gray-500">Rendering diagram...</div>
-        </div>
-      `;
-      
-      // Clean the diagram string with multiple strategies
-      let processedDiagram = cleanDiagram(diagram);
-      
-      // Apply specific fixes for sequence diagrams to prevent recursion
-      processedDiagram = fixRecursiveSequenceDiagram(processedDiagram);
-      
-      // VALIDATE SYNTAX BEFORE RENDERING - prevent runtime errors
-      validateMermaidSyntax(processedDiagram).then((isValid) => {
-        if (!isValid) {
-          // Syntax is invalid, don't even try to render
-          setHasError(true);
-          setErrorDetails('Invalid Mermaid syntax detected');
+      window.mermaid.render(diagramId, diagram)
+        .then((result) => {
           if (elementRef.current) {
-            elementRef.current.innerHTML = '';
+            elementRef.current.innerHTML = result.svg;
           }
-          setIsLoading(false);
-          return; // Exit early, don't render
-        }
-        
-        // If syntax is valid, proceed with rendering
-        const diagramId = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Try to render the diagram - only show if successful
-        window.mermaid.render(diagramId, processedDiagram)
-          .then((result) => {
-            if (elementRef.current) {
-              // Only show successfully rendered diagrams
-              elementRef.current.innerHTML = result.svg;
-              setIsLoading(false);
-            }
-          })
-          .catch((error) => {
-            // If rendering fails, show nothing - completely hide failed diagrams
-            setHasError(true);
-            setErrorDetails(error?.message || 'Rendering failed');
-            if (elementRef.current) {
-              elementRef.current.innerHTML = '';
-            }
-            setIsLoading(false);
-          });
-      }).catch(() => {
-        // If validation itself fails, mark as error
-        setHasError(true);
-        setErrorDetails('Validation failed');
-        if (elementRef.current) {
-          elementRef.current.innerHTML = '';
-        }
-        setIsLoading(false);
-      });
-      
-      // Add timeout fallback to prevent infinite loading
-      setTimeout(() => {
-        if (isLoading) {
-          setHasError(true);
-          setErrorDetails('Loading timeout');
-          setIsLoading(false);
-        }
-      }, 10000); // 10 second timeout
-      
-      
+        })
+        .catch((error) => {
+          console.error('Mermaid rendering error:', error);
+          if (elementRef.current) {
+            elementRef.current.innerHTML = `
+              <div class="p-4 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">
+                <p class="font-medium">Failed to render diagram</p>
+                <p class="text-sm mt-1">${error.message}</p>
+                <details class="mt-2 text-left">
+                  <summary class="cursor-pointer text-xs">Show diagram code</summary>
+                  <pre class="mt-2 text-xs bg-gray-100 p-2 rounded overflow-x-auto">${diagram}</pre>
+                </details>
+              </div>
+            `;
+          }
+        });
     }
   }, [mermaidLoaded, diagram]);
 
@@ -763,11 +449,6 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
     }
   };
 
-  // If diagram has errors, don't show the component at all
-  if (hasError) {
-    return null; // Hide the entire component
-  }
-
   if (!diagram || diagram.trim() === '') {
     return (
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -797,11 +478,6 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
             <div className="text-gray-500">Loading Mermaid...</div>
-          </div>
-        ) : isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
-            <div className="text-gray-500">Rendering diagram...</div>
           </div>
         ) : (
           <div ref={elementRef} className="mermaid-container min-h-[100px]"></div>
@@ -1413,18 +1089,137 @@ export default function AnalysisPage() {
               <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
                 System Architecture
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Overview */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-medium text-gray-700 mb-2">Overview:</h3>
                   <p className="text-gray-600">{parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}</p>
                 </div>
                 
+                {/* Data Flow */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-medium text-gray-700 mb-2">Data Flow:</h3>
                   <p className="text-gray-600">{parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}</p>
                 </div>
+
+                {/* Deployment Model */}
+                {parsedAnalysis.system_architecture?.deployment_model && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-2">Deployment Model:</h3>
+                    <p className="text-gray-600">{parsedAnalysis.system_architecture.deployment_model}</p>
+                  </div>
+                )}
+
+                {/* Scalability Approach */}
+                {parsedAnalysis.system_architecture?.scalability_approach && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-2">Scalability Approach:</h3>
+                    <p className="text-gray-600">{parsedAnalysis.system_architecture.scalability_approach}</p>
+                  </div>
+                )}
               </div>
             </section>
+
+            {/* System Components */}
+            {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                  System Components
+                </h2>
+                <div className="grid gap-6">
+                  {parsedAnalysis.system_architecture.components.map((component, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                      {/* Component Header */}
+                      <div className="border-b border-gray-200 pb-3 mb-4">
+                        <h3 className="text-lg font-semibold text-blue-600 mb-2">{component.name}</h3>
+                        <p className="text-gray-600">{component.purpose}</p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                          {/* Technology */}
+                          {component.technology && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Technology
+                              </h4>
+                              <p className="text-sm text-gray-600 bg-green-50 p-3 rounded border border-green-200">
+                                {component.technology}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Responsibilities */}
+                          {component.responsibilities && component.responsibilities.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Responsibilities
+                              </h4>
+                              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                                <ul className="space-y-2">
+                                  {component.responsibilities.map((resp, idx) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-blue-600 mr-2 mt-1">•</span>
+                                      <span className="text-sm text-gray-700">{resp}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-4">
+                          {/* Dependencies */}
+                          {component.dependencies && component.dependencies.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                                Dependencies
+                              </h4>
+                              <div className="bg-orange-50 border border-orange-200 rounded p-3">
+                                <ul className="space-y-2">
+                                  {component.dependencies.map((dep, idx) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-orange-600 mr-2 mt-1">•</span>
+                                      <span className="text-sm text-gray-700">{dep}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Interfaces */}
+                          {component.interfaces && component.interfaces.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                Interfaces
+                              </h4>
+                              <div className="bg-purple-50 border border-purple-200 rounded p-3">
+                                <ul className="space-y-2">
+                                  {component.interfaces.map((iface: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-purple-600 mr-2 mt-1">•</span>
+                                      <span className="text-sm text-gray-700 font-mono">{iface}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         );
 
@@ -1604,29 +1399,89 @@ export default function AnalysisPage() {
                 <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
                   Performance Considerations
                 </h2>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {parsedAnalysis.performance_considerations.map((performance, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-blue-600 mr-2">•</span>
-                        <span className="text-gray-700">
-                          {typeof performance === 'string' ? performance : (
-                            <div className="space-y-1">
-                              {performance.description && <div className="font-medium">{performance.description}</div>}
-                              {performance.category && <div className="text-sm text-gray-600">Category: {performance.category}</div>}
-                              {performance.priority && <div className="text-sm text-gray-600">Priority: {performance.priority}</div>}
-                              {performance.impact && <div className="text-sm text-gray-600">Impact: {performance.impact}</div>}
-                              {performance.implementation && (
-                                <div className="text-sm text-gray-600">
-                                  Implementation: {typeof performance.implementation === 'string' ? performance.implementation : JSON.stringify(performance.implementation)}
-                                </div>
-                              )}
+                <div className="space-y-6">
+                  {parsedAnalysis.performance_considerations.map((performance, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                      {typeof performance === 'string' ? (
+                        <div className="text-gray-700">{performance}</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Aspect Header */}
+                          <div className="border-b border-gray-200 pb-3">
+                            <h3 className="text-lg font-semibold text-blue-600">
+                              {performance.aspect || 'Performance Aspect'}
+                            </h3>
+                          </div>
+
+                          {/* Metrics */}
+                          {performance.metrics && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Metrics
+                              </h4>
+                              <p className="text-sm text-gray-600 bg-green-50 p-3 rounded border border-green-200">
+                                {performance.metrics}
+                              </p>
                             </div>
                           )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+
+                          {/* Bottlenecks */}
+                          {performance.bottlenecks && performance.bottlenecks.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                Bottlenecks
+                              </h4>
+                              <div className="bg-red-50 border border-red-200 rounded p-3">
+                                <ul className="space-y-2">
+                                  {performance.bottlenecks.map((bottleneck: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-red-600 mr-2 mt-1">•</span>
+                                      <span className="text-sm text-gray-700">{bottleneck}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Optimizations */}
+                          {performance.optimizations && performance.optimizations.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Optimizations
+                              </h4>
+                              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                                <ul className="space-y-2">
+                                  {performance.optimizations.map((optimization: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-blue-600 mr-2 mt-1">•</span>
+                                      <span className="text-sm text-gray-700">{optimization}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Current Implementation */}
+                          {performance.current_implementation && (
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                Current Implementation
+                              </h4>
+                              <p className="text-sm text-gray-600 bg-purple-50 p-3 rounded border border-purple-200">
+                                {performance.current_implementation}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
