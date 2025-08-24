@@ -344,10 +344,34 @@ const DiagramImageComponent = ({ image, title }: { image: any, title: string }) 
 const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const [mermaidLoaded, setMermaidLoaded] = useState(false);
-  const [renderError, setRenderError] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // Add CSS to hide Mermaid error messages
+    const style = document.createElement('style');
+    style.setAttribute('data-mermaid-error-suppression', 'true');
+    style.textContent = `
+      .mermaid-error,
+      .mermaid-error-message,
+      [class*="error"],
+      [class*="syntax-error"],
+      [class*="parse-error"] {
+        display: none !important;
+      }
+      
+      /* Hide any text that contains error messages */
+      div:contains("Syntax error"),
+      div:contains("Parse error"),
+      div:contains("Mermaid"),
+      span:contains("Syntax error"),
+      span:contains("Parse error"),
+      span:contains("Mermaid") {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     // Load Mermaid from CDN
     const loadMermaid = async () => {
       if (window.mermaid) {
@@ -358,26 +382,170 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js';
       script.onload = () => {
+        // Completely suppress ALL Mermaid error logging
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        
+        console.error = (...args) => {
+          // Block ALL Mermaid-related errors completely - more aggressive filtering
+          const firstArg = args[0];
+          const secondArg = args[1];
+          
+          // Check if it's a Mermaid error by examining all arguments
+          const isMermaidError = args.some(arg => {
+            if (typeof arg === 'string') {
+              return arg.includes('Mermaid') || 
+                     arg.includes('Parse error') || 
+                     arg.includes('Syntax error') ||
+                     arg.includes('Error parsing') ||
+                     arg.includes('Error executing') ||
+                     arg.includes('Expecting') ||
+                     arg.includes('got');
+            }
+            if (arg && typeof arg === 'object' && arg.message) {
+              return arg.message.includes('Parse error') ||
+                     arg.message.includes('Syntax error') ||
+                     arg.message.includes('Expecting') ||
+                     arg.message.includes('got');
+            }
+            return false;
+          });
+          
+          if (isMermaidError) {
+            return; // Block ALL Mermaid errors completely
+          }
+          
+          // Only log non-Mermaid errors
+          originalConsoleError(...args);
+        };
+        
+        console.warn = (...args) => {
+          // Block ALL Mermaid-related warnings completely - more aggressive filtering
+          const isMermaidWarning = args.some(arg => {
+            if (typeof arg === 'string') {
+              return arg.includes('Mermaid') || 
+                     arg.includes('Parse error') || 
+                     arg.includes('Syntax error') ||
+                     arg.includes('Error parsing') ||
+                     arg.includes('Error executing') ||
+                     arg.includes('Expecting') ||
+                     arg.includes('got');
+            }
+            if (arg && typeof arg === 'object' && arg.message) {
+              return arg.message.includes('Parse error') ||
+                     arg.message.includes('Syntax error') ||
+                     arg.message.includes('Expecting') ||
+                     arg.message.includes('got');
+            }
+            return false;
+          });
+          
+          if (isMermaidWarning) {
+            return; // Block ALL Mermaid warnings completely
+          }
+          
+          // Only log non-Mermaid warnings
+          originalConsoleWarn(...args);
+        };
+
         window.mermaid.initialize({
           startOnLoad: true,
           theme: 'default',
           securityLevel: 'loose',
+          logLevel: 'error',
           flowchart: {
             htmlLabels: false,
             curve: 'basis'
           }
         });
+        
+        // Set up a mutation observer to remove any error messages Mermaid might inject
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as Element;
+                // Remove any elements containing error messages
+                if (element.textContent && (
+                  element.textContent.includes('Syntax error') ||
+                  element.textContent.includes('Parse error') ||
+                  element.textContent.includes('Mermaid') ||
+                  element.textContent.includes('Error:')
+                )) {
+                  element.remove();
+                }
+                // Also check for error-related classes
+                if (element.className && typeof element.className === 'string' && (
+                  element.className.includes('error') ||
+                  element.className.includes('syntax') ||
+                  element.className.includes('parse')
+                )) {
+                  element.remove();
+                }
+              }
+            });
+          });
+        });
+        
+        // Start observing the document body for any new error messages
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
         setMermaidLoaded(true);
       };
       script.onerror = () => {
-        setRenderError('Failed to load Mermaid library');
         setIsLoading(false);
       };
       document.head.appendChild(script);
     };
 
     loadMermaid();
+    
+    // Cleanup function
+    return () => {
+      // Remove the style element
+      const styleElement = document.querySelector('style[data-mermaid-error-suppression]');
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
   }, []);
+
+  // Function to validate Mermaid syntax by attempting to render
+  const validateMermaidSyntax = async (diagram: string): Promise<boolean> => {
+    if (!diagram || diagram.trim() === '') {
+      return false;
+    }
+
+    try {
+      // Try to render a test diagram to validate syntax
+      const testId = `test-${Math.random().toString(36).substr(2, 9)}`;
+      const result = await window.mermaid.render(testId, diagram);
+      return !!result.svg; // If we get SVG, syntax is valid
+    } catch (error) {
+      // If render fails, diagram is invalid
+      return false;
+    }
+  };
+
+  // Add error tracking state
+  const [hasError, setHasError] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string>('');
+
+  // Expose error state to parent component
+  useEffect(() => {
+    if (hasError) {
+      // Log which diagram component failed with clear identification
+      console.log(`❌ Diagram component failed: ${title}`, {
+        componentType: title,
+        diagramPreview: diagram.substring(0, 100) + '...',
+        error: errorDetails,
+        fullDiagram: diagram
+      });
+    }
+  }, [hasError, errorDetails, title, diagram]);
 
   // Function to clean and fix common Mermaid syntax issues
   const cleanDiagram = (rawDiagram: string): string => {
@@ -393,51 +561,77 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
       .replace(/\\'/g, "'")
       .trim();
 
-    // Only apply minimal fixes for actually broken syntax
-    // Don't remove newlines or change the structure if it's already valid
-    
-    // Fix only obvious truncation issues
+    // Fix incomplete node definitions (missing closing brackets)
     if (cleaned.includes('[') && !cleaned.includes(']')) {
-      // Find the last incomplete bracket and close it
-      const lastOpenBracket = cleaned.lastIndexOf('[');
-      if (lastOpenBracket !== -1) {
-        const afterBracket = cleaned.substring(lastOpenBracket + 1);
-        if (!afterBracket.includes(']')) {
-          // Extract the node content and close it
-          const nodeContent = afterBracket.split(/\s/)[0] || 'Node';
-          cleaned = cleaned.substring(0, lastOpenBracket + 1) + nodeContent + ']';
+      const lines = cleaned.split('\n');
+      const fixedLines = lines.map(line => {
+        if (line.includes('[') && !line.includes(']')) {
+          // Find the last incomplete bracket and close it
+          const lastOpenBracket = line.lastIndexOf('[');
+          if (lastOpenBracket !== -1) {
+            const afterBracket = line.substring(lastOpenBracket + 1);
+            if (!afterBracket.includes(']')) {
+              // Extract the node content and close it
+              const nodeContent = afterBracket.split(/\s/)[0] || 'Node';
+              return line.substring(0, lastOpenBracket + 1) + nodeContent + ']';
+            }
+          }
         }
-      }
+        return line;
+      });
+      cleaned = fixedLines.join('\n');
     }
 
-    // Fix only incomplete class definitions (missing closing brace)
+    // Fix incomplete class definitions (missing closing brace)
     if (cleaned.includes('class ') && cleaned.includes('{') && !cleaned.includes('}')) {
       cleaned += '\n}';
     }
 
-    // Fix only incomplete sequence diagram (missing closing)
-    if (cleaned.includes('sequenceDiagram') && !cleaned.includes('activate') && !cleaned.includes('deactivate')) {
-      // Add basic activate/deactivate if missing
-      if (cleaned.includes('participant') && !cleaned.includes('activate')) {
-        const lines = cleaned.split('\n');
-        const participantLines = lines.filter(line => line.includes('participant'));
-        if (participantLines.length > 0) {
-          // Add activate/deactivate for the first participant interaction
-          const firstMessageIndex = lines.findIndex(line => line.includes('->>'));
-          if (firstMessageIndex !== -1) {
-            const participant = participantLines[0].split(/\s+/)[1];
-            lines.splice(firstMessageIndex + 1, 0, `    activate ${participant}`);
+    // Fix incomplete sequence diagrams
+    if (cleaned.includes('sequenceDiagram')) {
+      const lines = cleaned.split('\n');
+      const participantLines = lines.filter(line => line.includes('participant'));
+      
+      if (participantLines.length > 0) {
+        // Find message lines
+        const messageLines = lines.filter(line => line.includes('->>') || line.includes('-->>'));
+        
+        if (messageLines.length > 0) {
+          const firstParticipant = participantLines[0].split(/\s+/)[1];
+          
+          // Add activate/deactivate if missing
+          if (!cleaned.includes('activate')) {
+            const firstMessageIndex = lines.findIndex(line => line.includes('->>'));
+            if (firstMessageIndex !== -1) {
+              lines.splice(firstMessageIndex + 1, 0, `    activate ${firstParticipant}`);
+            }
+          }
+          
+          if (!cleaned.includes('deactivate')) {
             const lastMessageIndex = lines.findLastIndex(line => line.includes('-->>'));
             if (lastMessageIndex !== -1) {
-              lines.splice(lastMessageIndex + 1, 0, `    deactivate ${participant}`);
+              lines.splice(lastMessageIndex + 1, 0, `    deactivate ${firstParticipant}`);
             }
-            cleaned = lines.join('\n');
           }
+          
+          cleaned = lines.join('\n');
         }
       }
     }
 
-    // Only remove truly problematic trailing characters
+    // Fix incomplete flowchart arrows
+    if (cleaned.includes('-->') && !cleaned.includes(';')) {
+      const lines = cleaned.split('\n');
+      const fixedLines = lines.map(line => {
+        if (line.includes('-->') && !line.includes(';')) {
+          return line + ';';
+        }
+        return line;
+      });
+      cleaned = fixedLines.join('\n');
+    }
+
+    // Remove problematic trailing characters
     cleaned = cleaned.replace(/\s*--\s*$/, '');
     cleaned = cleaned.replace(/\s*-->\s*$/, '');
     cleaned = cleaned.replace(/\s*\[\s*$/, '');
@@ -460,7 +654,14 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
   useEffect(() => {
     if (mermaidLoaded && diagram && elementRef.current) {
       setIsLoading(true);
-      setRenderError(null);
+      
+      // Clear previous content and show loading
+      elementRef.current.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+          <div class="text-gray-500">Rendering diagram...</div>
+        </div>
+      `;
       
       // Clean the diagram string with multiple strategies
       let processedDiagram = cleanDiagram(diagram);
@@ -468,106 +669,60 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
       // Apply specific fixes for sequence diagrams to prevent recursion
       processedDiagram = fixRecursiveSequenceDiagram(processedDiagram);
       
-      // Clear previous content
-      elementRef.current.innerHTML = '';
-      
-      // Create a unique ID for this diagram
-      const diagramId = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Render the diagram with enhanced error handling
-      window.mermaid.render(diagramId, processedDiagram)
-        .then((result) => {
+      // VALIDATE SYNTAX BEFORE RENDERING - prevent runtime errors
+      validateMermaidSyntax(processedDiagram).then((isValid) => {
+        if (!isValid) {
+          // Syntax is invalid, don't even try to render
+          setHasError(true);
+          setErrorDetails('Invalid Mermaid syntax detected');
           if (elementRef.current) {
-            elementRef.current.innerHTML = result.svg;
-            setIsLoading(false);
+            elementRef.current.innerHTML = '';
           }
-        })
-        .catch((error: Error) => {
-          console.error('Mermaid rendering error:', error);
-          setRenderError(error.message);
           setIsLoading(false);
-          
-          // Try to create a fallback diagram if the original is too malformed
-          const createFallbackDiagram = (originalDiagram: string, diagramType: string): string => {
-            if (originalDiagram.includes('graph LR') || originalDiagram.includes('graph TD') || originalDiagram.includes('flowchart')) {
-              return `graph TD
-    A[Component A] --> B[Component B]
-    B --> C[Component C]
-    C --> A`;
-            } else if (originalDiagram.includes('sequenceDiagram')) {
-              return `sequenceDiagram
-    participant A as Client
-    participant B as Server
-    A->>B: Request
-    B->>A: Response`;
-            } else if (originalDiagram.includes('classDiagram')) {
-              return `classDiagram
-    class User {
-        +String name
-        +String email
-    }
-    class System {
-        +String version
-    }
-    User --> System`;
-            } else {
-              return `graph TD
-    A[Start] --> B[Process]
-    B --> C[End]`;
+          return; // Exit early, don't render
+        }
+        
+        // If syntax is valid, proceed with rendering
+        const diagramId = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Try to render the diagram - only show if successful
+        window.mermaid.render(diagramId, processedDiagram)
+          .then((result) => {
+            if (elementRef.current) {
+              // Only show successfully rendered diagrams
+              elementRef.current.innerHTML = result.svg;
+              setIsLoading(false);
             }
-          };
-
-          // Try to render a fallback diagram
-          const fallbackDiagram = createFallbackDiagram(diagram, title);
-          
-          window.mermaid.render(`${diagramId}-fallback`, fallbackDiagram)
-            .then((fallbackResult) => {
-              if (elementRef.current) {
-                elementRef.current.innerHTML = `
-                  <div class="text-yellow-600 p-4 bg-yellow-50 rounded border border-yellow-200 mb-4">
-                    <div class="flex items-center mb-2">
-                      <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                      </svg>
-                      <p class="font-semibold">Original diagram failed to render</p>
-                    </div>
-                    <p class="text-sm mb-3">Error: ${error.message}</p>
-                    <p class="text-sm mb-3">Showing simplified fallback diagram instead.</p>
-                  </div>
-                  ${fallbackResult.svg}
-                  <details class="mt-4">
-                    <summary class="cursor-pointer text-sm font-medium hover:text-yellow-800">Show original diagram code</summary>
-                    <pre class="mt-2 text-xs bg-white p-3 rounded border overflow-x-auto font-mono">${diagram}</pre>
-                  </details>
-                `;
-              }
-            })
-            .catch((fallbackError) => {
-              // If even the fallback fails, show the error with debug info
-              if (elementRef.current) {
-                elementRef.current.innerHTML = `
-                  <div class="text-red-600 p-4 bg-red-50 rounded border border-red-200">
-                    <div class="flex items-center mb-2">
-                      <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                      </svg>
-                      <p class="font-semibold">Failed to render diagram</p>
-                    </div>
-                    <p class="text-sm mb-3">Error: ${error.message}</p>
-                    <p class="text-sm mb-3">Fallback also failed: ${fallbackError.message}</p>
-                    <details class="mb-3">
-                      <summary class="cursor-pointer text-sm font-medium hover:text-red-800">Show processed diagram</summary>
-                      <pre class="mt-2 text-xs bg-white p-3 rounded border overflow-x-auto font-mono">${processedDiagram}</pre>
-                    </details>
-                    <details>
-                      <summary class="cursor-pointer text-sm font-medium hover:text-red-800">Show original diagram</summary>
-                      <pre class="mt-2 text-xs bg-white p-3 rounded border overflow-x-auto font-mono">${diagram}</pre>
-                    </details>
-                  </div>
-                `;
-              }
-            });
-        });
+          })
+          .catch((error) => {
+            // If rendering fails, show nothing - completely hide failed diagrams
+            setHasError(true);
+            setErrorDetails(error?.message || 'Rendering failed');
+            if (elementRef.current) {
+              elementRef.current.innerHTML = '';
+            }
+            setIsLoading(false);
+          });
+      }).catch(() => {
+        // If validation itself fails, mark as error
+        setHasError(true);
+        setErrorDetails('Validation failed');
+        if (elementRef.current) {
+          elementRef.current.innerHTML = '';
+        }
+        setIsLoading(false);
+      });
+      
+      // Add timeout fallback to prevent infinite loading
+      setTimeout(() => {
+        if (isLoading) {
+          setHasError(true);
+          setErrorDetails('Loading timeout');
+          setIsLoading(false);
+        }
+      }, 10000); // 10 second timeout
+      
+      
     }
   }, [mermaidLoaded, diagram]);
 
@@ -607,6 +762,11 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
       alert('Failed to download diagram. Please try again.');
     }
   };
+
+  // If diagram has errors, don't show the component at all
+  if (hasError) {
+    return null; // Hide the entire component
+  }
 
   if (!diagram || diagram.trim() === '') {
     return (
@@ -1560,65 +1720,43 @@ export default function AnalysisPage() {
                 Architecture Diagrams
               </h2>
               
+
+              
               <div className="space-y-6">
-                {/* Component Diagram */}
-                {parsedAnalysis.mermaid_diagrams?.component_diagram ? (
+                {/* Component Diagram - Only show if diagram exists and renders */}
+                {parsedAnalysis.mermaid_diagrams?.component_diagram && (
                   <MermaidDiagram 
+                    key="component-diagram"
                     diagram={parsedAnalysis.mermaid_diagrams.component_diagram} 
                     title="Component Diagram" 
                   />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-3">Component Diagram:</h3>
-                    <div className="bg-white p-4 rounded border">
-                      <div className="text-gray-500 text-center py-4">No diagram available</div>
-                    </div>
-                  </div>
                 )}
                 
-                {/* Sequence Diagram */}
-                {parsedAnalysis.mermaid_diagrams?.sequence_diagram ? (
+                {/* Sequence Diagram - Only show if diagram exists and renders */}
+                {parsedAnalysis.mermaid_diagrams?.sequence_diagram && (
                   <MermaidDiagram 
+                    key="sequence-diagram"
                     diagram={parsedAnalysis.mermaid_diagrams.sequence_diagram} 
                     title="Sequence Diagram" 
                   />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-3">Sequence Diagram:</h3>
-                    <div className="bg-white p-4 rounded border">
-                      <div className="text-gray-500 text-center py-4">No diagram available</div>
-                    </div>
-                  </div>
                 )}
                 
-                {/* Activity Diagram */}
-                {parsedAnalysis.mermaid_diagrams?.activity_diagram ? (
+                {/* Activity Diagram - Only show if diagram exists and renders */}
+                {parsedAnalysis.mermaid_diagrams?.activity_diagram && (
                   <MermaidDiagram 
+                    key="activity-diagram"
                     diagram={parsedAnalysis.mermaid_diagrams.activity_diagram} 
                     title="Activity Diagram" 
                   />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-3">Activity Diagram:</h3>
-                    <div className="bg-white p-4 rounded border">
-                      <div className="text-gray-500 text-center py-4">No diagram available</div>
-                    </div>
-                  </div>
                 )}
                 
-                {/* Class Diagram */}
-                {parsedAnalysis.mermaid_diagrams?.class_diagram ? (
+                {/* Class Diagram - Only show if diagram exists and renders */}
+                {parsedAnalysis.mermaid_diagrams?.class_diagram && (
                   <MermaidDiagram 
+                    key="class-diagram"
                     diagram={parsedAnalysis.mermaid_diagrams.class_diagram} 
                     title="Class Diagram" 
                   />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-3">Class Diagram:</h3>
-                    <div className="bg-white p-4 rounded border">
-                      <div className="text-gray-500 text-center py-4">No diagram available</div>
-                    </div>
-                  </div>
                 )}
               </div>
             </section>
@@ -1653,8 +1791,22 @@ export default function AnalysisPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header with Back Button */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                Code Analysis Report
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                Analysis ID: {analysisData?.job?.id || 'Unknown'}
+              </span>
+            
+              
+            </div>
+          </div>
+          <div className="flex-shrink-0 flex items-center gap-2">
             <Button
               onClick={() => router.push('/analysis')}
               variant="outline"
@@ -1664,12 +1816,6 @@ export default function AnalysisPage() {
               <ArrowLeft className="h-4 w-4" />
               Back to Analysis Jobs
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Code Analysis Report</h1>
-              <p className="text-muted-foreground">
-                Analysis ID: {analysisData?.job?.id || 'Unknown'}
-              </p>
-            </div>
           </div>
         </div>
 

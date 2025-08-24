@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ExternalLink, BarChart3, FileText, GitBranch, Lightbulb } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
@@ -24,6 +25,7 @@ export function AnalysisResult({
   keyInsights, 
   className 
 }: AnalysisResultProps) {
+  const router = useRouter()
   const [isExpanded, setIsExpanded] = useState(false)
 
   const getAnalysisIcon = (type: string) => {
@@ -119,8 +121,8 @@ export function AnalysisResult({
               variant="outline"
               size="sm"
               onClick={() => {
-                // Navigate to analysis dashboard
-                window.open(`/analysis?id=${analysisId}`, '_blank')
+                // Navigate using Next.js router for proper routing
+                router.push(`/analysis/${analysisId}`)
               }}
               className="flex items-center space-x-1"
             >
@@ -147,7 +149,7 @@ export function extractAnalysisIdFromMessage(content: string): string | null {
 
 // Helper function to check if message contains analysis result
 export function isAnalysisResultMessage(content: string): boolean {
-  return content.includes('Analysis Complete! 📊') && 
+  return (content.includes('Analysis Complete! 📊') || content.includes('Analysis Already Exists! 📊')) && 
          content.includes('Analysis ID:') &&
          extractAnalysisIdFromMessage(content) !== null
 }
@@ -166,15 +168,24 @@ export function extractAnalysisDataFromMessage(content: string): {
   const repoMatch = content.match(/Repository:\s*([^\n]+)/)
   const repositoryName = repoMatch ? repoMatch[1].trim() : null
   
-  // Extract analysis type
-  const typeMatch = content.match(/Analysis Type:\s*([^\n]+)/)
-  const analysisType = typeMatch ? typeMatch[1].trim() : null
+  // Extract analysis type - try new format first, then fallback to old format
+  let analysisType: string | null = null
   
-  // Extract summary (between repository/type info and "Key Insights:" or "###")
-  const summaryMatch = content.match(/(?:Repository:.*\nAnalysis Type:.*\n\n)([\s\S]*?)(?=\n\n### Key Insights:|### |💡 Want to see|$)/)
+  // New format: "Low-Level Design" on its own line after "Analysis Complete! 📊"
+  const newTypeMatch = content.match(/## Analysis Complete! 📊\n\n([^\n]+)\n/)
+  if (newTypeMatch) {
+    analysisType = newTypeMatch[1].trim()
+  } else {
+    // Old format: "Analysis Type: something"
+    const typeMatch = content.match(/Analysis Type:\s*([^\n]+)/)
+    analysisType = typeMatch ? typeMatch[1].trim() : null
+  }
+  
+  // Extract summary - try to get the text between repository info and "💡 Want to see"
+  const summaryMatch = content.match(/Repository:.*\n\n([\s\S]*?)(?=\n\n💡 Want to see|$)/)
   const summary = summaryMatch ? summaryMatch[1].trim() : null
   
-  // Extract key insights
+  // Extract key insights - this might not be present in the new format
   const insightsMatch = content.match(/### Key Insights:\s*\n([\s\S]*?)(?=\n\n### |💡 Want to see|$)/)
   const keyInsights = insightsMatch 
     ? insightsMatch[1]
