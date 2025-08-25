@@ -31,13 +31,24 @@ async function testRepositoryAPIs() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log(`✅ ${api.name}: Success!`)
-        console.log(`   - Repositories: ${data.repositories?.length || 0}`)
-        console.log(`   - Organizations: ${data.organizations?.length || 0}`)
-        console.log(`   - Total: ${data.total || 0}`)
         
-        if (data.repositories?.length > 0) {
-          console.log(`   - Sample repo: ${data.repositories[0].full_name}`)
+        // Check if this is a no-integration response
+        if (data.integration === false) {
+          console.log(`🔗 ${api.name}: No Integration`)
+          console.log(`   - Message: ${data.message}`)
+          console.log(`   - Status: 200 OK (No Integration)`)
+        } else if (data.repositories) {
+          console.log(`✅ ${api.name}: Success!`)
+          console.log(`   - Repositories: ${data.repositories?.length || 0}`)
+          console.log(`   - Organizations: ${data.organizations?.length || 0}`)
+          console.log(`   - Total: ${data.total || 0}`)
+          
+          if (data.repositories?.length > 0) {
+            console.log(`   - Sample repo: ${data.repositories[0].full_name}`)
+          }
+        } else {
+          console.log(`⚠️  ${api.name}: Unexpected response format`)
+          console.log(`   - Data:`, JSON.stringify(data, null, 2))
         }
       } else {
         const errorData = await response.json().catch(() => ({}))
@@ -60,6 +71,10 @@ console.log('📋 Instructions:')
 console.log('1. Make sure your backend server is running on http://localhost:8080')
 console.log('2. Replace AUTH_TOKEN with a valid authentication token')
 console.log('3. Run: node test-repository-apis.js')
+console.log('')
+console.log('📝 Expected Responses:')
+console.log('   - Success: { repositories: [...], organizations: [...], total: N, page: 1, per_page: 5 }')
+console.log('   - No Integration: { integration: false, message: "Please integrate your X account" }')
 console.log('')
 
 // Uncomment the line below to run the tests

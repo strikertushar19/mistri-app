@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Repository, Organization, repositoryAPI } from "@/lib/api/repositories"
+import { Repository, Organization, repositoryAPI, RepositoryAPIResponse, NoIntegrationResponse } from "@/lib/api/repositories"
 import { Button } from "@/components/ui/Button"
 import { 
   DropdownMenu,
@@ -51,7 +51,7 @@ export function RepositoryDisplay({
         repositoryAPI.clearCache(provider)
       }
 
-      let response: any
+      let response: RepositoryAPIResponse
       switch (provider) {
         case 'github':
           response = await repositoryAPI.getGitHubRepositories(1, 100) // Get more repositories
@@ -64,8 +64,23 @@ export function RepositoryDisplay({
           break
       }
 
-      setAllRepositories(response.repositories)
-      setAllOrganizations(response.organizations)
+      // Check if this is a no-integration response
+      if ('integration' in response && response.integration === false) {
+        setError(response.message)
+        setAllRepositories([])
+        setAllOrganizations([])
+        return
+      }
+
+      // Handle normal repository response
+      if ('repositories' in response) {
+        setAllRepositories(response.repositories)
+        setAllOrganizations(response.organizations)
+      } else {
+        setError(`Unexpected response format from ${config.name}`)
+        setAllRepositories([])
+        setAllOrganizations([])
+      }
       
       // Check if data was cached
       const cacheStats = repositoryAPI.getCacheStats()
@@ -140,6 +155,7 @@ export function RepositoryDisplay({
 
   if (error) {
     const isAuthError = error.includes('authentication has expired') || error.includes('Please reconnect')
+    const isNoIntegration = error.includes('Please integrate your') || error.includes('integration not found')
     
     return (
       <div className="p-4 bg-[var(--bg-secondary)] border border-[var(--border-light)] rounded-lg">
@@ -156,16 +172,18 @@ export function RepositoryDisplay({
           <div className="flex-1 min-w-0">
             <p className="text-[var(--text-secondary)] text-sm mb-2">{error}</p>
             <div className="flex space-x-2">
-              {isAuthError ? (
+              {isNoIntegration ? (
+                <Button 
+                  onClick={() => window.location.href = '/code-providers'} 
+                  className="text-xs"
+                  variant="outline"
+                  size="sm"
+                >
+                  Connect Account
+                </Button>
+              ) : isAuthError ? (
                 <>
-                  <Button 
-                    onClick={() => window.location.href = '/settings'} 
-                    className="text-xs"
-                    variant="outline"
-                    size="sm"
-                  >
-                    Go to Settings
-                  </Button>
+                
                   <Button 
                     onClick={() => fetchAllRepositories(true)} 
                     className="text-xs"

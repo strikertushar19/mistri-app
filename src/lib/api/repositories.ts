@@ -44,10 +44,19 @@ export interface RepositoryResponse {
   per_page: number
 }
 
+// New interface for when integration is not found
+export interface NoIntegrationResponse {
+  integration: boolean
+  message: string
+}
+
+// Union type for repository API responses
+export type RepositoryAPIResponse = RepositoryResponse | NoIntegrationResponse
+
 // Repository API functions
 export const repositoryAPI = {
   // Get GitHub repositories and organizations
-  async getGitHubRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryResponse> {
+  async getGitHubRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryAPIResponse> {
     try {
       // Check cache first
       const cachedData = cacheRepositoryData.get('github', page, perPage)
@@ -59,7 +68,13 @@ export const repositoryAPI = {
       console.log('🌐 Fetching GitHub data for page', page)
       const response = await api.get(`/repositories/github?page=${page}&per_page=${perPage}`)
       
-      // Cache the response
+      // Check if this is a no-integration response
+      if (response.data.integration === false) {
+        console.log('🔗 No GitHub integration found:', response.data.message)
+        return response.data
+      }
+      
+      // Only cache successful repository responses
       cacheRepositoryData.set('github', page, perPage, response.data)
       
       return response.data
@@ -70,7 +85,7 @@ export const repositoryAPI = {
   },
 
   // Get GitLab repositories and groups
-  async getGitLabRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryResponse> {
+  async getGitLabRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryAPIResponse> {
     try {
       // Check cache first
       const cachedData = cacheRepositoryData.get('gitlab', page, perPage)
@@ -82,7 +97,13 @@ export const repositoryAPI = {
       console.log('🌐 Fetching GitLab data for page', page)
       const response = await api.get(`/repositories/gitlab?page=${page}&per_page=${perPage}`)
       
-      // Cache the response
+      // Check if this is a no-integration response
+      if (response.data.integration === false) {
+        console.log('🔗 No GitLab integration found:', response.data.message)
+        return response.data
+      }
+      
+      // Only cache successful repository responses
       cacheRepositoryData.set('gitlab', page, perPage, response.data)
       
       return response.data
@@ -113,7 +134,7 @@ export const repositoryAPI = {
   },
 
   // Get Bitbucket repositories and workspaces
-  async getBitbucketRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryResponse> {
+  async getBitbucketRepositories(page: number = 1, perPage: number = 30): Promise<RepositoryAPIResponse> {
     try {
       // Check cache first
       const cachedData = cacheRepositoryData.get('bitbucket', page, perPage)
@@ -125,7 +146,13 @@ export const repositoryAPI = {
       console.log('🌐 Fetching Bitbucket data for page', page)
       const response = await api.get(`/repositories/bitbucket?page=${page}&per_page=${perPage}`)
       
-      // Cache the response
+      // Check if this is a no-integration response
+      if (response.data.integration === false) {
+        console.log('🔗 No Bitbucket integration found:', response.data.message)
+        return response.data
+      }
+      
+      // Only cache successful repository responses
       cacheRepositoryData.set('bitbucket', page, perPage, response.data)
       
       return response.data
@@ -157,14 +184,14 @@ export const repositoryAPI = {
 
   // Get all repositories from all providers
   async getAllRepositories(): Promise<{
-    github?: RepositoryResponse
-    gitlab?: RepositoryResponse
-    bitbucket?: RepositoryResponse
+    github?: RepositoryAPIResponse
+    gitlab?: RepositoryAPIResponse
+    bitbucket?: RepositoryAPIResponse
   }> {
     const results: {
-      github?: RepositoryResponse
-      gitlab?: RepositoryResponse
-      bitbucket?: RepositoryResponse
+      github?: RepositoryAPIResponse
+      gitlab?: RepositoryAPIResponse
+      bitbucket?: RepositoryAPIResponse
     } = {}
 
     try {

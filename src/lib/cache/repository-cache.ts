@@ -1,7 +1,7 @@
-import { Repository, Organization, RepositoryResponse } from '@/lib/api/repositories'
+import { Repository, Organization, RepositoryResponse, RepositoryAPIResponse } from '@/lib/api/repositories'
 
 interface CachedData {
-  data: RepositoryResponse
+  data: RepositoryAPIResponse
   timestamp: number
   expiresAt: number
 }
@@ -24,7 +24,7 @@ class RepositoryCacheManager {
     return Date.now() > cachedData.expiresAt
   }
 
-  get(provider: string, page: number, perPage: number): RepositoryResponse | null {
+  get(provider: string, page: number, perPage: number): RepositoryAPIResponse | null {
     const cacheKey = this.getCacheKey(provider, page, perPage)
     const providerCache = this.cache[provider]
     
@@ -43,7 +43,7 @@ class RepositoryCacheManager {
     return cachedData.data
   }
 
-  set(provider: string, page: number, perPage: number, data: RepositoryResponse): void {
+  set(provider: string, page: number, perPage: number, data: RepositoryAPIResponse): void {
     const cacheKey = this.getCacheKey(provider, page, perPage)
     
     if (!this.cache[provider]) {
@@ -97,7 +97,7 @@ export const repositoryCache = new RepositoryCacheManager()
 // Cache wrapper functions for easier use
 export const cacheRepositoryData = {
   get: (provider: string, page: number, perPage: number) => repositoryCache.get(provider, page, perPage),
-  set: (provider: string, page: number, perPage: number, data: RepositoryResponse) => repositoryCache.set(provider, page, perPage, data),
+  set: (provider: string, page: number, perPage: number, data: RepositoryAPIResponse) => repositoryCache.set(provider, page, perPage, data),
   clear: (provider?: string) => repositoryCache.clear(provider),
   clearExpired: () => repositoryCache.clearExpired(),
   getStats: () => repositoryCache.getCacheStats()

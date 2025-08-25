@@ -32,6 +32,14 @@ interface Recommendation {
   implementation?: string | any;
 }
 
+interface SecurityConsideration {
+  aspect?: string;
+  description?: string;
+  strengths?: string[];
+  vulnerabilities?: string[];
+  recommendations?: string[];
+}
+
 interface DesignPattern {
   pattern?: string;
   benefits?: string[];
@@ -75,13 +83,26 @@ interface AnalysisData {
     name: string;
     description: string;
     main_technology: string;
+    project_type?: string;
+    architecture_style?: string;
+    key_components?: string[];
+    design_patterns_used?: string[];
+    performance_considerations?: string;
+    security_posture?: string;
+    algorithms?: string;
+    diagrams?: string[];
+    error_handling?: string;
+    recommendations?: string[];
+    scalability_approach?: string;
   };
   system_architecture: {
-    overview: string;
-    components: AnalysisComponent[];
-    data_flow: string;
-    deployment_model?: string;
-    scalability_approach?: string;
+    system_architecture: {
+      overview: string;
+      components: AnalysisComponent[];
+      data_flow: string;
+      deployment_model?: string;
+      scalability_approach?: string;
+    };
   };
   detailed_design: {
     classes: any[];
@@ -92,20 +113,68 @@ interface AnalysisData {
       purpose: string;
     }>;
   };
-  design_patterns: (string | DesignPattern)[];
-  algorithms: (string | Algorithm)[];
-  error_handling: {
-    strategies: any[];
-    exceptions: any[];
-    error_analysis?: {
-      gaps?: string[];
-      improvements?: string[];
-      overall_strategy?: string;
+  design_patterns: {
+    design_patterns: (string | DesignPattern)[];
+    pattern_analysis?: {
+      missing_patterns?: string[];
+      pattern_coverage?: string;
+      overall_pattern_usage?: string;
     };
   };
-  security_considerations: (string | Recommendation)[];
-  performance_considerations: (string | PerformanceConsideration)[];
-  recommendations: (string | Recommendation)[];
+  algorithms: {
+    algorithms: (string | Algorithm)[];
+    algorithm_analysis?: {
+      bottlenecks?: string[];
+      overall_complexity?: string;
+      optimization_opportunities?: string[];
+    };
+  };
+  error_handling: {
+    error_handling: {
+      strategies: any[];
+      exceptions: any[];
+      error_analysis?: {
+        gaps?: string[];
+        improvements?: string[];
+        overall_strategy?: string;
+      };
+    };
+  };
+  security_considerations: {
+    security_analysis?: {
+      compliance?: string[];
+      risk_level?: string;
+      critical_issues?: string;
+      overall_security?: string;
+    };
+    security_considerations: {
+    security_analysis?: {
+      compliance?: string[];
+      risk_level?: string;
+      critical_issues?: string[];
+      overall_security?: string;
+    };
+    security_considerations: (string | SecurityConsideration)[];
+  };
+  };
+  performance_considerations: {
+    performance_analysis?: {
+      monitoring?: string | string[];
+      scalability?: string;
+      overall_performance?: string;
+      critical_bottlenecks?: string[];
+    };
+    performance_considerations: (string | PerformanceConsideration)[];
+  };
+  recommendations: {
+    recommendations: (string | Recommendation)[];
+    recommendations_analysis?: {
+      long_term_goals?: string[];
+      overall_quality?: string;
+      maintenance_plan?: string;
+      critical_improvements?: string[];
+    };
+  };
   mermaid_diagrams?: {
     class_diagram?: string;
     component_diagram?: string;
@@ -136,14 +205,15 @@ const TabButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors min-w-[180px] w-auto ${
       isActive
         ? 'bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--border)]'
         : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
     }`}
+    style={{ maxWidth: '100%', width: 'fit-content' }}
   >
-    <Icon className="h-4 w-4" />
-    {children}
+    <Icon className="h-4 w-4 flex-shrink-0" />
+    <span className="truncate">{children}</span>
   </button>
 );
 
@@ -980,6 +1050,7 @@ export default function AnalysisPage() {
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'performance', label: 'Performance', icon: Zap },
     { id: 'algorithms', label: 'Algorithms', icon: Code2 },
+    { id: 'recommendations', label: 'Recommendations', icon: Code2 },
     { id: 'diagrams', label: 'Diagrams', icon: Activity },
   ];
 
@@ -994,24 +1065,149 @@ export default function AnalysisPage() {
               <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                 Repository Overview
               </h2>
-              <div className="bg-[var(--muted)] p-4 rounded-lg">
-                <h3 className="font-medium text-[var(--foreground)]">Name:</h3>
-                <p className="text-[var(--muted-foreground)] mb-2">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
-                
-                <h3 className="font-medium text-[var(--foreground)]">Description:</h3>
-                <div className="text-[var(--muted-foreground)] mb-2">
-                  {parsedAnalysis.repository_overview?.description || 'No description available'}
+              <div className="grid gap-6">
+                {/* Basic Information */}
+                <div className="bg-[var(--muted)] p-4 rounded-lg">
+                  <h3 className="font-medium text-[var(--foreground)] mb-3">Basic Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Name:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Description:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.description || 'No description available'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Project Type:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.project_type || 'Not specified'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Technology Stack:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.main_technology || 'Not specified'}</p>
+                    </div>
+                  </div>
                 </div>
-                
-                <h3 className="font-medium text-[var(--foreground)]">Technology Stack:</h3>
-                <div className="text-[var(--muted-foreground)]">
-                  {parsedAnalysis.repository_overview?.main_technology || 'Not specified'}
+
+                {/* Architecture & Design */}
+                <div className="bg-[var(--muted)] p-4 rounded-lg">
+                  <h3 className="font-medium text-[var(--foreground)] mb-3">Architecture & Design</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Architecture Style:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.architecture_style || 'Not specified'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium text-[var(--foreground)]">Scalability Approach:</span>
+                      <p className="text-[var(--muted-foreground)] mt-1">{parsedAnalysis.repository_overview?.scalability_approach || 'Not specified'}</p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Key Components */}
+                {parsedAnalysis.repository_overview?.key_components && parsedAnalysis.repository_overview.key_components.length > 0 && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Key Components</h3>
+                    <div className="grid gap-2">
+                      {parsedAnalysis.repository_overview.key_components.map((component: string, index: number) => (
+                        <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3">
+                          <span className="text-[var(--foreground)]">{component}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Design Patterns */}
+                {parsedAnalysis.repository_overview?.design_patterns_used && parsedAnalysis.repository_overview.design_patterns_used.length > 0 && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Design Patterns Used</h3>
+                    <div className="grid gap-2">
+                      {parsedAnalysis.repository_overview.design_patterns_used.map((pattern: string, index: number) => (
+                        <div key={index} className="bg-[var(--chart-1)]/10 border border-[var(--chart-1)]/20 rounded-lg p-3">
+                          <span className="text-[var(--foreground)] font-medium">{pattern}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Performance Considerations */}
+                {parsedAnalysis.repository_overview?.performance_considerations && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Performance Considerations</h3>
+                    <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-3">
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.performance_considerations}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Security  */}
+                {parsedAnalysis.repository_overview?.security_posture && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Security </h3>
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-3">
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.security_posture}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Algorithms */}
+                {parsedAnalysis.repository_overview?.algorithms && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Algorithms</h3>
+                    <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded-lg p-3">
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.algorithms}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Handling */}
+                {parsedAnalysis.repository_overview?.error_handling && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Error Handling</h3>
+                    <div className="bg-[var(--chart-5)]/10 border border-[var(--chart-5)]/20 rounded-lg p-3">
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.error_handling}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Available Diagrams */}
+                {parsedAnalysis.repository_overview?.diagrams && parsedAnalysis.repository_overview.diagrams.length > 0 && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Available Diagrams</h3>
+                    <div className="grid gap-2">
+                      {parsedAnalysis.repository_overview.diagrams.map((diagram: string, index: number) => (
+                        <div key={index} className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded-lg p-3">
+                          <span className="text-[var(--foreground)] font-medium">{diagram}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {parsedAnalysis.repository_overview?.recommendations && parsedAnalysis.repository_overview.recommendations.length > 0 && (
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-3">Key Recommendations</h3>
+                    <div className="grid gap-3">
+                      {parsedAnalysis.repository_overview.recommendations.map((recommendation: string, index: number) => (
+                        <div key={index} className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-3">
+                          <span className="text-[var(--foreground)]">{recommendation}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 
             {/* Data Structures */}
-            {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
+            {/* {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Data Structures
@@ -1027,11 +1223,11 @@ export default function AnalysisPage() {
                 </div>
               </section>
             )}
-
+ */}
 
 
             {/* Recommendations */}
-            {parsedAnalysis.recommendations && parsedAnalysis.recommendations.length > 0 && (
+            {/* {parsedAnalysis.recommendations && parsedAnalysis.recommendations.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Recommendations
@@ -1062,7 +1258,7 @@ export default function AnalysisPage() {
                   </ul>
                 </div>
               </section>
-            )}
+            )} */}
           </div>
         );
 
@@ -1079,7 +1275,7 @@ export default function AnalysisPage() {
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
                   <h3 className="font-medium text-[var(--foreground)] mb-2">Overview:</h3>
                   <div className="text-[var(--muted-foreground)]">
-                    {parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}
+                    {parsedAnalysis.system_architecture.system_architecture?.overview || 'No architecture overview available'}
                   </div>
                 </div>
                 
@@ -1087,36 +1283,36 @@ export default function AnalysisPage() {
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
                   <h3 className="font-medium text-[var(--foreground)] mb-2">Data Flow:</h3>
                   <div className="text-[var(--muted-foreground)]">
-                    {parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}
+                    {parsedAnalysis.system_architecture.system_architecture?.data_flow || 'No data flow information available'}
                   </div>
                 </div>
 
                 {/* Deployment Model */}
-                {parsedAnalysis.system_architecture?.deployment_model && (
+                {parsedAnalysis.system_architecture.system_architecture?.deployment_model && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-2">Deployment Model:</h3>
-                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.deployment_model}</p>
+                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.system_architecture.deployment_model}</p>
                   </div>
                 )}
 
                 {/* Scalability Approach */}
-                {parsedAnalysis.system_architecture?.scalability_approach && (
+                {parsedAnalysis.system_architecture.system_architecture?.scalability_approach && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-2">Scalability Approach:</h3>
-                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.scalability_approach}</p>
+                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.system_architecture.scalability_approach}</p>
                   </div>
                 )}
               </div>
             </section>
 
             {/* System Components */}
-            {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 && (
+            {parsedAnalysis.system_architecture.system_architecture?.components && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   System Components
                 </h2>
                 <div className="grid gap-6">
-                  {parsedAnalysis.system_architecture.components.map((component, index) => (
+                  {parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
                       {/* Component Header */}
                       <div className="border-b border-[var(--border)] pb-3 mb-4">
@@ -1214,8 +1410,8 @@ export default function AnalysisPage() {
                 Components
               </h2>
               <div className="grid gap-4">
-                {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 ? (
-                  parsedAnalysis.system_architecture.components.map((component, index) => (
+                {parsedAnalysis.system_architecture.system_architecture?.components && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
+                  parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
                       <h3 className="font-semibold text-lg text-[var(--chart-2)] mb-2">{component.name}</h3>
                       <p className="text-[var(--muted-foreground)] mb-3">{component.purpose}</p>
@@ -1255,13 +1451,13 @@ export default function AnalysisPage() {
         return (
           <div className="space-y-6">
             {/* Design Patterns */}
-            {parsedAnalysis.design_patterns && parsedAnalysis.design_patterns.length > 0 && (
+            {parsedAnalysis.design_patterns?.design_patterns && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Design Patterns
                 </h2>
                 <div className="space-y-6">
-                  {parsedAnalysis.design_patterns.map((pattern, index) => (
+                  {parsedAnalysis.design_patterns.design_patterns.map((pattern, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
                       {typeof pattern === 'string' ? (
                         <div className="text-[var(--foreground)]">{pattern}</div>
@@ -1375,40 +1571,184 @@ export default function AnalysisPage() {
                 </div>
               </section>
             )}
+
+            {/* Pattern Analysis */}
+            {parsedAnalysis.design_patterns?.pattern_analysis && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Pattern Analysis
+                </h2>
+                <div className="space-y-4">
+                  {parsedAnalysis.design_patterns.pattern_analysis.pattern_coverage && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Pattern Coverage</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.design_patterns.pattern_analysis.pattern_coverage}</p>
+                    </div>
+                  )}
+                  
+                  {parsedAnalysis.design_patterns.pattern_analysis.overall_pattern_usage && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Pattern Usage</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.design_patterns.pattern_analysis.overall_pattern_usage}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.design_patterns.pattern_analysis.missing_patterns && parsedAnalysis.design_patterns.pattern_analysis.missing_patterns.length > 0 && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Missing Patterns</h3>
+                      <ul className="list-disc list-inside text-[var(--muted-foreground)] space-y-1">
+                        {parsedAnalysis.design_patterns.pattern_analysis.missing_patterns.map((pattern, index) => (
+                          <li key={index}>{pattern}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         );
 
       case 'security':
         return (
           <div className="space-y-6">
+            {/* Security Analysis */}
+            {parsedAnalysis.security_considerations?.security_analysis && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Security Analysis
+                </h2>
+                <div className="space-y-4">
+                  {parsedAnalysis.security_considerations.security_analysis.risk_level && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Risk Level</h3>
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                        parsedAnalysis.security_considerations.security_analysis.risk_level === 'High' 
+                          ? 'bg-red-100 text-red-800' 
+                          : parsedAnalysis.security_considerations.security_analysis.risk_level === 'Medium'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {parsedAnalysis.security_considerations.security_analysis.risk_level}
+                      </span>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.security_considerations.security_analysis.overall_security && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Security Assessment</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.security_considerations.security_analysis.overall_security}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.security_considerations.security_analysis?.critical_issues && Array.isArray(parsedAnalysis.security_considerations.security_analysis.critical_issues) && parsedAnalysis.security_considerations.security_analysis.critical_issues.length > 0 && (
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--destructive)] mb-3">Critical Issues</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.security_considerations.security_analysis.critical_issues.map((issue: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-[var(--foreground)]">{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.security_considerations.security_analysis?.compliance && parsedAnalysis.security_considerations.security_analysis.compliance.length > 0 && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Compliance Issues</h3>
+                      <ul className="list-disc list-inside text-[var(--muted-foreground)] space-y-1">
+                        {parsedAnalysis.security_considerations.security_analysis.compliance.map((compliance: string, index: number) => (
+                          <li key={index}>{compliance}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* Security Considerations */}
-            {parsedAnalysis.security_considerations && parsedAnalysis.security_considerations.length > 0 && (
+            {parsedAnalysis.security_considerations?.security_considerations && Array.isArray(parsedAnalysis.security_considerations.security_considerations) && parsedAnalysis.security_considerations.security_considerations.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Security Considerations
                 </h2>
-                <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {parsedAnalysis.security_considerations.map((security, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-[var(--foreground)]">
-                          {typeof security === 'string' ? security : (
-                            <div className="space-y-1">
-                              {security.description && <div className="font-medium">{security.description}</div>}
-                              {security.category && <div className="text-sm text-[var(--muted-foreground)]">Category: {security.category}</div>}
-                              {security.priority && <div className="text-sm text-[var(--muted-foreground)]">Priority: {security.priority}</div>}
-                              {security.impact && <div className="text-sm text-[var(--muted-foreground)]">Impact: {security.impact}</div>}
-                              {security.implementation && (
-                                <div className="text-sm text-[var(--muted-foreground)]">
-                                  Implementation: {typeof security.implementation === 'string' ? security.implementation : JSON.stringify(security.implementation)}
-                                </div>
-                              )}
+                <div className="space-y-6">
+                  {parsedAnalysis.security_considerations.security_considerations.map((security: string | SecurityConsideration, index: number) => (
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
+                      {typeof security === 'string' ? (
+                        <div className="text-[var(--foreground)]">{security}</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Aspect Header */}
+                          <div className="border-b border-[var(--border)] pb-3">
+                            <h3 className="text-lg font-semibold text-[var(--chart-2)]">
+                              {(security as SecurityConsideration).aspect || 'Security Aspect'}
+                            </h3>
+                          </div>
+
+                          {/* Description */}
+                          {(security as SecurityConsideration).description && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Description</h4>
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-1)]/10 p-3 rounded border border-[var(--chart-1)]/20">
+                                {(security as SecurityConsideration).description}
+                              </p>
                             </div>
                           )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+
+                          {/* Strengths */}
+                          {(security as SecurityConsideration).strengths && (security as SecurityConsideration).strengths!.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Strengths</h4>
+                              <div className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {(security as SecurityConsideration).strengths!.map((strength: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{strength}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Vulnerabilities */}
+                          {(security as SecurityConsideration).vulnerabilities && (security as SecurityConsideration).vulnerabilities!.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Vulnerabilities</h4>
+                              <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {(security as SecurityConsideration).vulnerabilities!.map((vulnerability: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{vulnerability}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Recommendations */}
+                          {(security as SecurityConsideration).recommendations && (security as SecurityConsideration).recommendations!.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Recommendations</h4>
+                              <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {(security as SecurityConsideration).recommendations!.map((recommendation: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{recommendation}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
@@ -1421,11 +1761,11 @@ export default function AnalysisPage() {
                 </h2>
                 <div className="space-y-4">
                   {/* Exceptions */}
-                  {parsedAnalysis.error_handling.exceptions && parsedAnalysis.error_handling.exceptions.length > 0 && (
+                  {parsedAnalysis.error_handling.error_handling?.exceptions && parsedAnalysis.error_handling.error_handling.exceptions.length > 0 && (
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--destructive)] mb-3">Exceptions:</h3>
                       <div className="grid gap-4">
-                        {parsedAnalysis.error_handling.exceptions.map((exception, index) => (
+                        {parsedAnalysis.error_handling.error_handling.exceptions.map((exception, index) => (
                           <div key={index} className="bg-[var(--card)] border border-[var(--destructive)]/20 rounded-lg p-3">
                             <div className="font-medium text-[var(--destructive)] mb-2">{exception.type}</div>
                             <p className="text-sm text-[var(--muted-foreground)] mb-2">{exception.description}</p>
@@ -1440,11 +1780,11 @@ export default function AnalysisPage() {
                   )}
 
                   {/* Strategies */}
-                  {parsedAnalysis.error_handling.strategies && parsedAnalysis.error_handling.strategies.length > 0 && (
+                  {parsedAnalysis.error_handling.error_handling?.strategies && parsedAnalysis.error_handling.error_handling.strategies.length > 0 && (
                     <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--chart-3)] mb-3">Strategies:</h3>
                       <div className="grid gap-4">
-                        {parsedAnalysis.error_handling.strategies.map((strategy, index) => (
+                        {parsedAnalysis.error_handling.error_handling.strategies.map((strategy, index) => (
                           <div key={index} className="bg-[var(--card)] border border-[var(--chart-3)]/20 rounded-lg p-3">
                             <div className="font-medium text-[var(--chart-3)] mb-2">{strategy.strategy}</div>
                             <p className="text-sm text-[var(--muted-foreground)] mb-2">{strategy.description}</p>
@@ -1459,34 +1799,34 @@ export default function AnalysisPage() {
                   )}
 
                   {/* Error Analysis */}
-                  {parsedAnalysis.error_handling.error_analysis && (
+                  {parsedAnalysis.error_handling.error_handling?.error_analysis && (
                     <div className="bg-[var(--muted)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-3">Error Analysis:</h3>
                       <div className="space-y-4">
-                        {parsedAnalysis.error_handling.error_analysis.gaps && (
+                        {parsedAnalysis.error_handling.error_handling.error_analysis.gaps && (
                           <div>
                             <h4 className="font-medium text-[var(--foreground)] mb-2">Gaps:</h4>
                             <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
-                              {parsedAnalysis.error_handling.error_analysis.gaps.map((gap, index) => (
+                              {parsedAnalysis.error_handling.error_handling.error_analysis.gaps.map((gap, index) => (
                                 <li key={index}>{gap}</li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        {parsedAnalysis.error_handling.error_analysis.improvements && (
+                        {parsedAnalysis.error_handling.error_handling.error_analysis.improvements && (
                           <div>
                             <h4 className="font-medium text-[var(--foreground)] mb-2">Improvements:</h4>
                             <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
-                              {parsedAnalysis.error_handling.error_analysis.improvements.map((improvement, index) => (
+                              {parsedAnalysis.error_handling.error_handling.error_analysis.improvements.map((improvement, index) => (
                                 <li key={index}>{improvement}</li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        {parsedAnalysis.error_handling.error_analysis.overall_strategy && (
+                        {parsedAnalysis.error_handling.error_handling.error_analysis.overall_strategy && (
                           <div>
                             <h4 className="font-medium text-[var(--foreground)] mb-2">Overall Strategy:</h4>
-                            <p className="text-sm text-[var(--muted-foreground)]">{parsedAnalysis.error_handling.error_analysis.overall_strategy}</p>
+                            <p className="text-sm text-[var(--muted-foreground)]">{parsedAnalysis.error_handling.error_handling.error_analysis.overall_strategy}</p>
                           </div>
                         )}
                       </div>
@@ -1501,14 +1841,65 @@ export default function AnalysisPage() {
       case 'performance':
         return (
           <div className="space-y-6">
+            {/* Performance Analysis */}
+            {parsedAnalysis.performance_considerations?.performance_analysis && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Performance Analysis
+                </h2>
+                <div className="space-y-4">
+                  {parsedAnalysis.performance_considerations.performance_analysis.overall_performance && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Performance</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.performance_considerations.performance_analysis.overall_performance}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.performance_considerations.performance_analysis.scalability && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Scalability</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.performance_considerations.performance_analysis.scalability}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks && parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks.length > 0 && (
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--destructive)] mb-3">Critical Bottlenecks</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks.map((bottleneck, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-[var(--foreground)]">{bottleneck}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.performance_considerations.performance_analysis.monitoring && parsedAnalysis.performance_considerations.performance_analysis.monitoring.length > 0 && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Monitoring Recommendations</h3>
+                      <ul className="list-disc list-inside text-[var(--muted-foreground)] space-y-1">
+                        {(Array.isArray(parsedAnalysis.performance_considerations.performance_analysis.monitoring)
+                          ? parsedAnalysis.performance_considerations.performance_analysis.monitoring
+                          : [parsedAnalysis.performance_considerations.performance_analysis.monitoring]
+                        ).map((monitoring: string, index: number) => (
+                          <li key={index}>{monitoring}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* Performance Considerations */}
-            {parsedAnalysis.performance_considerations && parsedAnalysis.performance_considerations.length > 0 && (
+            {parsedAnalysis.performance_considerations?.performance_considerations && parsedAnalysis.performance_considerations.performance_considerations.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Performance Considerations
                 </h2>
                 <div className="space-y-6">
-                  {parsedAnalysis.performance_considerations.map((performance, index) => (
+                  {parsedAnalysis.performance_considerations.performance_considerations.map((performance, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
                       {typeof performance === 'string' ? (
                         <div className="text-[var(--foreground)]">{performance}</div>
@@ -1593,75 +1984,241 @@ export default function AnalysisPage() {
       case 'algorithms':
         return (
           <div className="space-y-6">
+            {/* Algorithm Analysis */}
+            {parsedAnalysis.algorithms?.algorithm_analysis && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Algorithm Analysis
+                </h2>
+                <div className="space-y-4">
+                  {parsedAnalysis.algorithms.algorithm_analysis.overall_complexity && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Complexity</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.algorithms.algorithm_analysis.overall_complexity}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.algorithms.algorithm_analysis.bottlenecks && parsedAnalysis.algorithms.algorithm_analysis.bottlenecks.length > 0 && (
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--destructive)] mb-3">Bottlenecks</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.algorithms.algorithm_analysis.bottlenecks.map((bottleneck, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-[var(--foreground)]">{bottleneck}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities && parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities.length > 0 && (
+                    <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--chart-3)] mb-3">Optimization Opportunities</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities.map((opportunity, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-[var(--foreground)]">{opportunity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* Algorithms */}
-            {parsedAnalysis.algorithms && parsedAnalysis.algorithms.length > 0 && (
+            {parsedAnalysis.algorithms?.algorithms && parsedAnalysis.algorithms.algorithms.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Algorithms
                 </h2>
-                <div className="   p-4">
-                  <div className="grid gap-4">
-                    {parsedAnalysis.algorithms.map((algorithm, index) => (
-                      <div key={index} className="bg-[var(--card)] border border-[var(--chart-1)]/20 rounded-lg p-4 shadow-sm">
-                        {typeof algorithm === 'string' ? (
-                          <div className="text-[var(--foreground)]">{algorithm}</div>
-                        ) : (
-                          <div className="space-y-3">
-                            {(algorithm as Algorithm).name && (
-                              <div>
-                                <h4 className="font-semibold text-lg text-[var(--chart-1)]">{(algorithm as Algorithm).name}</h4>
-                                {(algorithm as Algorithm).location && (
-                                  <p className="text-sm text-[var(--muted-foreground)]">Location: {(algorithm as Algorithm).location}</p>
+                <div className="space-y-4">
+                  {parsedAnalysis.algorithms.algorithms.map((algorithm, index) => (
+                    <div key={index} className="bg-[var(--card)] border border-[var(--chart-1)]/20 rounded-lg p-4 shadow-sm">
+                      {typeof algorithm === 'string' ? (
+                        <div className="text-[var(--foreground)]">{algorithm}</div>
+                      ) : (
+                        <div className="space-y-3">
+                          {(algorithm as Algorithm).name && (
+                            <div>
+                              <h4 className="font-semibold text-lg text-[var(--chart-1)]">{(algorithm as Algorithm).name}</h4>
+                              {(algorithm as Algorithm).location && (
+                                <p className="text-sm text-[var(--muted-foreground)]">Location: {(algorithm as Algorithm).location}</p>
+                              )}
+                            </div>
+                          )}
+                          {(algorithm as Algorithm).description && (
+                            <div>
+                              <h5 className="font-medium text-[var(--foreground)] mb-1">Description:</h5>
+                              <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).description}</p>
+                            </div>
+                          )}
+                          {(algorithm as Algorithm).complexity && (
+                            <div>
+                              <h5 className="font-medium text-[var(--foreground)] mb-1">Complexity:</h5>
+                              <div className="text-sm text-[var(--muted-foreground)]">
+                                {(() => {
+                                  const complexity = (algorithm as Algorithm).complexity;
+                                  if (typeof complexity === 'string') {
+                                    return complexity;
+                                  } else if (complexity && typeof complexity === 'object') {
+                                    return (
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {complexity.time && <div><span className="font-medium">Time:</span> {complexity.time}</div>}
+                                        {complexity.space && <div><span className="font-medium">Space:</span> {complexity.space}</div>}
+                                        {complexity.best_case && <div><span className="font-medium">Best Case:</span> {complexity.best_case}</div>}
+                                        {complexity.average_case && <div><span className="font-medium">Average Case:</span> {complexity.average_case}</div>}
+                                        {complexity.worst_case && <div><span className="font-medium">Worst Case:</span> {complexity.worst_case}</div>}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                          {(algorithm as Algorithm).optimization_potential && (
+                            <div>
+                              <h5 className="font-medium text-[var(--foreground)] mb-1">Optimization Potential:</h5>
+                              <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).optimization_potential}</p>
+                            </div>
+                          )}
+                          {(algorithm as Algorithm).performance_characteristics && (
+                            <div>
+                              <h5 className="font-medium text-[var(--foreground)] mb-1">Performance Characteristics:</h5>
+                              <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).performance_characteristics}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+
+      case 'recommendations':
+        return (
+          <div className="space-y-6">
+            {/* Recommendations */}
+            {parsedAnalysis.recommendations?.recommendations && parsedAnalysis.recommendations.recommendations.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Recommendations
+                </h2>
+                <div className="space-y-6">
+                  {parsedAnalysis.recommendations.recommendations.map((rec, index) => (
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
+                      {typeof rec === 'string' ? (
+                        <div className="text-[var(--foreground)]">{rec}</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Recommendation Header */}
+                          <div className="border-b border-[var(--border)] pb-3">
+                            <h3 className="text-lg font-semibold text-[var(--chart-2)]">
+                              {rec.description || 'Recommendation'}
+                            </h3>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {rec.category && (
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[var(--chart-1)]/10 text-[var(--chart-1)] border border-[var(--chart-1)]/20">
+                                  {rec.category}
+                                </span>
+                              )}
+                              {rec.priority && (
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  rec.priority === 'high' 
+                                    ? 'bg-red-100 text-red-800' 
+                                    : rec.priority === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {rec.priority}
+                                </span>
+                              )}
+                              {rec.impact && (
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[var(--chart-3)]/10 text-[var(--chart-3)] border border-[var(--chart-3)]/20">
+                                  {rec.impact}
+                                </span>
                                 )}
-                              </div>
-                            )}
-                            {(algorithm as Algorithm).description && (
-                              <div>
-                                <h5 className="font-medium text-[var(--foreground)] mb-1">Description:</h5>
-                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).description}</p>
-                              </div>
-                            )}
-                            {(algorithm as Algorithm).complexity && (
-                              <div>
-                                <h5 className="font-medium text-[var(--foreground)] mb-1">Complexity:</h5>
-                                <div className="text-sm text-[var(--muted-foreground)]">
-                                  {(() => {
-                                    const complexity = (algorithm as Algorithm).complexity;
-                                    if (typeof complexity === 'string') {
-                                      return complexity;
-                                    } else if (complexity && typeof complexity === 'object') {
-                                      return (
-                                        <div className="grid grid-cols-2 gap-2">
-                                          {complexity.time && <div><span className="font-medium">Time:</span> {complexity.time}</div>}
-                                          {complexity.space && <div><span className="font-medium">Space:</span> {complexity.space}</div>}
-                                          {complexity.best_case && <div><span className="font-medium">Best Case:</span> {complexity.best_case}</div>}
-                                          {complexity.average_case && <div><span className="font-medium">Average Case:</span> {complexity.average_case}</div>}
-                                          {complexity.worst_case && <div><span className="font-medium">Worst Case:</span> {complexity.worst_case}</div>}
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
-                                </div>
-                              </div>
-                            )}
-                            {(algorithm as Algorithm).optimization_potential && (
-                              <div>
-                                <h5 className="font-medium text-[var(--foreground)] mb-1">Optimization Potential:</h5>
-                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).optimization_potential}</p>
-                              </div>
-                            )}
-                            {(algorithm as Algorithm).performance_characteristics && (
-                              <div>
-                                <h5 className="font-medium text-[var(--foreground)] mb-1">Performance Characteristics:</h5>
-                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).performance_characteristics}</p>
-                              </div>
-                            )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+
+                          {/* Rationale */}
+                          {rec.rationale && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Rationale</h4>
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-1)]/10 p-3 rounded border border-[var(--chart-1)]/20">
+                                {rec.rationale}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Implementation */}
+                          {rec.implementation && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">Implementation</h4>
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-2)]/10 p-3 rounded border border-[var(--chart-2)]/20">
+                                {typeof rec.implementation === 'string' ? rec.implementation : JSON.stringify(rec.implementation)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Recommendations Analysis */}
+            {parsedAnalysis.recommendations?.recommendations_analysis && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Recommendations Analysis
+                </h2>
+                <div className="space-y-4">
+                  {parsedAnalysis.recommendations.recommendations_analysis.overall_quality && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Quality</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.recommendations.recommendations_analysis.overall_quality}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.recommendations.recommendations_analysis.maintenance_plan && (
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-2">Maintenance Plan</h3>
+                      <p className="text-[var(--muted-foreground)]">{parsedAnalysis.recommendations.recommendations_analysis.maintenance_plan}</p>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.recommendations.recommendations_analysis.critical_improvements && parsedAnalysis.recommendations.recommendations_analysis.critical_improvements.length > 0 && (
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--destructive)] mb-3">Critical Improvements</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.recommendations.recommendations_analysis.critical_improvements.map((improvement, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-[var(--foreground)]">{improvement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {parsedAnalysis.recommendations.recommendations_analysis.long_term_goals && parsedAnalysis.recommendations.recommendations_analysis.long_term_goals.length > 0 && (
+                    <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-3">Long Term Goals</h3>
+                      <ul className="space-y-2">
+                        {parsedAnalysis.recommendations.recommendations_analysis.long_term_goals.map((goal, index) => (
+                          <li key={index} className="flex items-start">
+                                                             <span className="text-[var(--foreground)]">{goal}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
@@ -1673,7 +2230,7 @@ export default function AnalysisPage() {
           <div className="space-y-6">
             {/* Architecture Diagrams */}
             <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                 Architecture Diagrams
               </h2>
               
@@ -1721,7 +2278,7 @@ export default function AnalysisPage() {
             {/* Generated Diagram Images */}
             {parsedAnalysis.diagram_images && Object.keys(parsedAnalysis.diagram_images).length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Generated Diagram Images
                 </h2>
                 

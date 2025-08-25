@@ -51,6 +51,10 @@ The integration uses the following backend API endpoints:
 - `per_page` (optional): Items per page (default: 30, max: 100)
 
 ### Response Format
+
+The API can return two types of responses:
+
+#### 1. Repository Response (when integration exists)
 ```typescript
 interface RepositoryResponse {
   repositories: Repository[]
@@ -60,6 +64,26 @@ interface RepositoryResponse {
   per_page: number
 }
 ```
+
+#### 2. No Integration Response (when account not connected)
+```typescript
+interface NoIntegrationResponse {
+  integration: false
+  message: string  // e.g., "Please integrate your GitHub account"
+}
+```
+
+**Note**: When no integration is found, the API returns a 200 status with the no-integration message instead of a 404 error.
+
+### Error Handling
+
+The frontend handles different response types gracefully:
+
+- **No Integration**: Shows a "Connect Account" button that redirects to settings
+- **Authentication Expired**: Shows a "Go to Settings" button for reconnection
+- **Other Errors**: Shows a "Retry" button to attempt the request again
+
+All error states are displayed with appropriate action buttons to help users resolve issues.
 
 ## 🎯 Usage
 
