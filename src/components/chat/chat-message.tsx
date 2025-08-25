@@ -1,13 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Edit2, Trash2, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Message, MessageAvatar, MessageContent, MessageActions, MessageAction } from "@/components/ui/message"
 import { Message as ConversationMessage } from "@/lib/api/conversations"
 import { cn } from "@/lib/utils"
 import { Markdown } from "@/components/ui/markdown"
+import { useTextStream } from "@/components/ui/response-stream"
 import { AnalysisResult, isAnalysisResultMessage, extractAnalysisDataFromMessage } from "./analysis-result"
+
+// Custom component that combines streaming with markdown rendering for real-time messages only
+function StreamingMarkdown({ content, speed = 25, isRealTime = false }: { content: string; speed?: number; isRealTime?: boolean }) {
+  const { displayedText, startStreaming } = useTextStream({
+    textStream: content,
+    mode: "typewriter",
+    speed: speed,
+  })
+
+  useEffect(() => {
+    if (isRealTime) {
+      startStreaming()
+    }
+  }, [startStreaming, isRealTime])
+
+  // For real-time messages, show streaming effect with markdown
+  if (isRealTime) {
+    return (
+      <div className="w-full min-w-full">
+        <Markdown className="prose prose-sm dark:prose-invert prose-h2:mt-0! prose-h2:scroll-m-0!">
+          {displayedText}
+        </Markdown>
+      </div>
+    )
+  }
+
+  // For old messages, render directly as markdown without streaming
+  return (
+    <div className="w-full min-w-full">
+      <Markdown className="prose prose-sm dark:prose-invert prose-h2:mt-0! prose-h2:scroll-m-0!">
+        {content}
+      </Markdown>
+    </div>
+  )
+}
 
 // Function to clean markdown content by removing code block wrappers but preserving outer text
 function cleanMarkdownContent(content: string): string {
@@ -75,15 +111,23 @@ interface ChatMessageProps {
   // onEdit?: (messageId: string, newContent: string) => void
   // onDelete?: (messageId: string) => void
   className?: string
+  isRealTime?: boolean // Add prop to determine if this is a real-time message
 }
 
-export function ChatMessage({ message, /* onEdit, onDelete, */ className }: ChatMessageProps) {
+export function ChatMessage({ message, /* onEdit, onDelete, */ className, isRealTime = false }: ChatMessageProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [copied, setCopied] = useState(false)
 
   const isUser = message.role === 'user'
   const isAssistant = message.role === 'assistant'
+
+  // Determine if message is real-time based on creation time (within last 30 seconds)
+  const isMessageRealTime = isRealTime || (() => {
+    const messageTime = new Date(message.created_at).getTime()
+    const currentTime = Date.now()
+    return (currentTime - messageTime) < 30000 // 30 seconds
+  })()
 
   const handleEdit = () => {
     // if (onEdit && editContent.trim() !== message.content) {
@@ -202,9 +246,9 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
                      </div>
                    </div>
                  ) : (
-                   <div className="px-4 py-2 rounded-2xl shadow-md bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-light)] text-left">
-                     {message.content || "No content available"}
-                   </div>
+                                    <div className="px-4 py-2 rounded-2xl shadow-md bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-light)] text-left">
+                   {message.content || "No content available"}
+                 </div>
                  )}
 
                  {/* Message Actions */}
@@ -293,15 +337,19 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className }: Chat
                             className="mb-4"
                           />
                         ) : (
-                          <Markdown>
-                            {cleanMarkdownContent(message.content) || "No content available"}
-                          </Markdown>
+                          <StreamingMarkdown
+                            content={cleanMarkdownContent(message.content) || "No content available"}
+                            speed={25}
+                            isRealTime={isMessageRealTime}
+                          />
                         )
                       })()
                     ) : (
-                      <Markdown>
-                        {cleanMarkdownContent(message.content) || "No content available"}
-                      </Markdown>
+                      <StreamingMarkdown
+                        content={cleanMarkdownContent(message.content) || "No content available"}
+                        speed={25}
+                        isRealTime={isMessageRealTime}
+                      />
                     )}
                   </div>
                 )}

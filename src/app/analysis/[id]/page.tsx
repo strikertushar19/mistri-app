@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, BarChart3, GitBranch, Calendar, Code2, DollarSign, Shield, Zap, GitCommit, Layers, Activity, Download } from 'lucide-react';
 
+
 interface AnalysisComponent {
   name: string;
   purpose: string;
@@ -29,6 +30,16 @@ interface Recommendation {
   impact?: string;
   rationale?: string;
   implementation?: string | any;
+}
+
+interface DesignPattern {
+  pattern?: string;
+  benefits?: string[];
+  location?: string;
+  description?: string;
+  alternatives?: string[];
+  anti_patterns?: string[];
+  implementation_quality?: string;
 }
 
 interface AlgorithmComplexity {
@@ -81,7 +92,7 @@ interface AnalysisData {
       purpose: string;
     }>;
   };
-  design_patterns: (string | any)[];
+  design_patterns: (string | DesignPattern)[];
   algorithms: (string | Algorithm)[];
   error_handling: {
     strategies: any[];
@@ -127,8 +138,8 @@ const TabButton = ({
     onClick={onClick}
     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
       isActive
-        ? 'bg-blue-100 text-blue-700 border border-blue-200'
-        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+        ? 'bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--border)]'
+        : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
     }`}
   >
     <Icon className="h-4 w-4" />
@@ -869,8 +880,8 @@ export default function AnalysisPage() {
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex items-center space-x-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <div className="text-lg">Loading analysis...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--chart-2)]"></div>
+        <div className="text-lg text-[var(--foreground)]">Loading analysis...</div>
       </div>
     </div>
   );
@@ -878,32 +889,32 @@ export default function AnalysisPage() {
   if (error) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center max-w-4xl mx-auto p-6">
-        <div className="text-red-600 text-lg mb-4">Error: {error}</div>
+        <div className="text-[var(--destructive)] text-lg mb-4">Error: {error}</div>
         
         {/* Debug information for JSON parsing errors */}
         {error.includes('Failed to parse analysis result') && analysisData?.analysis_data?.raw_result && (
-          <div className="bg-gray-100 p-4 rounded-lg text-left mb-4">
-            <h3 className="text-lg font-semibold mb-2">Debug Information:</h3>
+          <div className="bg-[var(--muted)] p-4 rounded-lg text-left mb-4">
+            <h3 className="text-lg font-semibold mb-2 text-[var(--foreground)]">Debug Information:</h3>
             <div className="space-y-4">
               <div>
-                <strong>Raw Result Length:</strong> {analysisData.analysis_data.raw_result.length} characters
+                <strong className="text-[var(--foreground)]">Raw Result Length:</strong> {analysisData.analysis_data.raw_result.length} characters
               </div>
               <div>
-                <strong>First 500 characters:</strong>
-                <pre className="mt-2 bg-white p-2 rounded overflow-x-auto text-xs">
+                <strong className="text-[var(--foreground)]">First 500 characters:</strong>
+                <pre className="mt-2 bg-[var(--card)] p-2 rounded overflow-x-auto text-xs text-[var(--foreground)]">
                   {analysisData.analysis_data.raw_result.substring(0, 500)}
                 </pre>
               </div>
               <div>
-                <strong>Last 500 characters:</strong>
-                <pre className="mt-2 bg-white p-2 rounded overflow-x-auto text-xs">
+                <strong className="text-[var(--foreground)]">Last 500 characters:</strong>
+                <pre className="mt-2 bg-[var(--card)] p-2 rounded overflow-x-auto text-xs text-[var(--foreground)]">
                   {analysisData.analysis_data.raw_result.substring(Math.max(0, analysisData.analysis_data.raw_result.length - 500))}
                 </pre>
               </div>
               {error.includes('position') && (
                 <div>
-                  <strong>Error Position Analysis:</strong>
-                  <pre className="mt-2 bg-white p-2 rounded overflow-x-auto text-xs">
+                  <strong className="text-[var(--foreground)]">Error Position Analysis:</strong>
+                  <pre className="mt-2 bg-[var(--card)] p-2 rounded overflow-x-auto text-xs text-[var(--foreground)]">
                     {(() => {
                       const positionMatch = error.match(/position (\d+)/);
                       if (positionMatch) {
@@ -923,7 +934,7 @@ export default function AnalysisPage() {
         
         <button 
           onClick={() => analysisId && fetchAnalysisData(analysisId)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[var(--chart-2)] text-[var(--primary-foreground)] rounded hover:bg-[var(--chart-1)] transition-colors"
         >
           Retry
         </button>
@@ -934,21 +945,21 @@ export default function AnalysisPage() {
   if (!parsedAnalysis) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="space-y-4 max-w-4xl mx-auto p-6">
-        <div className="text-lg text-center">No parsed analysis data found</div>
+        <div className="text-lg text-center text-[var(--foreground)]">No parsed analysis data found</div>
         {analysisData && (
           <div>
-            <h3 className="text-lg font-semibold mb-2">Debug Information:</h3>
-            <div className="bg-gray-100 p-4 rounded-lg text-sm">
+            <h3 className="text-lg font-semibold mb-2 text-[var(--foreground)]">Debug Information:</h3>
+            <div className="bg-[var(--muted)] p-4 rounded-lg text-sm">
               <div className="mb-4">
-                <strong>Analysis Data Structure:</strong>
-                <pre className="mt-2 bg-white p-2 rounded overflow-x-auto max-h-60">
+                <strong className="text-[var(--foreground)]">Analysis Data Structure:</strong>
+                <pre className="mt-2 bg-[var(--card)] p-2 rounded overflow-x-auto max-h-60 text-[var(--foreground)]">
                   {JSON.stringify(analysisData, null, 2)}
                 </pre>
               </div>
               {analysisData?.analysis_data?.raw_result && (
                 <div>
-                  <strong>Raw Result (first 500 chars):</strong>
-                  <pre className="mt-2 bg-white p-2 rounded overflow-x-auto">
+                  <strong className="text-[var(--foreground)]">Raw Result (first 500 chars):</strong>
+                  <pre className="mt-2 bg-[var(--card)] p-2 rounded overflow-x-auto text-[var(--foreground)]">
                     {analysisData.analysis_data.raw_result.substring(0, 500)}...
                   </pre>
                 </div>
@@ -965,6 +976,7 @@ export default function AnalysisPage() {
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'architecture', label: 'Architecture', icon: Layers },
     { id: 'components', label: 'Components', icon: GitCommit },
+    { id: 'design-patterns', label: 'Design Patterns', icon: Code2 },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'performance', label: 'Performance', icon: Zap },
     { id: 'algorithms', label: 'Algorithms', icon: Code2 },
@@ -979,93 +991,66 @@ export default function AnalysisPage() {
           <div className="space-y-6">
             {/* Repository Overview */}
             <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                 Repository Overview
               </h2>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium text-gray-700">Name:</h3>
-                <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
+              <div className="bg-[var(--muted)] p-4 rounded-lg">
+                <h3 className="font-medium text-[var(--foreground)]">Name:</h3>
+                <p className="text-[var(--muted-foreground)] mb-2">{parsedAnalysis.repository_overview?.name || analysisData?.job?.repository_name || 'N/A'}</p>
                 
-                <h3 className="font-medium text-gray-700">Description:</h3>
-                <p className="text-gray-600 mb-2">{parsedAnalysis.repository_overview?.description || 'No description available'}</p>
+                <h3 className="font-medium text-[var(--foreground)]">Description:</h3>
+                <div className="text-[var(--muted-foreground)] mb-2">
+                  {parsedAnalysis.repository_overview?.description || 'No description available'}
+                </div>
                 
-                <h3 className="font-medium text-gray-700">Technology Stack:</h3>
-                <p className="text-gray-600">{parsedAnalysis.repository_overview?.main_technology || 'Not specified'}</p>
+                <h3 className="font-medium text-[var(--foreground)]">Technology Stack:</h3>
+                <div className="text-[var(--muted-foreground)]">
+                  {parsedAnalysis.repository_overview?.main_technology || 'Not specified'}
+                </div>
               </div>
             </section>
 
             {/* Data Structures */}
             {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Data Structures
                 </h2>
                 <div className="grid gap-4">
                   {parsedAnalysis.detailed_design.data_structures.map((ds, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                      <h3 className="font-semibold text-lg text-green-600 mb-2">{ds.name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">Type: {ds.type}</p>
-                      <p className="text-gray-600">{ds.purpose}</p>
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
+                      <h3 className="font-semibold text-lg text-[var(--chart-1)] mb-2">{ds.name}</h3>
+                      <p className="text-sm text-[var(--muted-foreground)] mb-2">Type: {ds.type}</p>
+                      <p className="text-[var(--muted-foreground)]">{ds.purpose}</p>
                     </div>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Design Patterns */}
-            {parsedAnalysis.design_patterns && parsedAnalysis.design_patterns.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
-                  Design Patterns
-                </h2>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <ul className="space-y-2">
-                    {parsedAnalysis.design_patterns.map((pattern, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-purple-600 mr-2">•</span>
-                        <span className="text-gray-700">
-                          {typeof pattern === 'string' ? pattern : (
-                            <div className="space-y-1">
-                              {pattern.name && <div className="font-medium">{pattern.name}</div>}
-                              {pattern.description && <div className="text-sm text-gray-600">{pattern.description}</div>}
-                              {pattern.category && <div className="text-sm text-gray-600">Category: {pattern.category}</div>}
-                              {pattern.purpose && <div className="text-sm text-gray-600">Purpose: {pattern.purpose}</div>}
-                              {pattern.implementation && (
-                                <div className="text-sm text-gray-600">
-                                  Implementation: {typeof pattern.implementation === 'string' ? pattern.implementation : JSON.stringify(pattern.implementation)}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-            )}
+
 
             {/* Recommendations */}
             {parsedAnalysis.recommendations && parsedAnalysis.recommendations.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Recommendations
                 </h2>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
                   <ul className="space-y-2">
                     {parsedAnalysis.recommendations.map((rec, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-yellow-600 mr-2">•</span>
-                        <span className="text-gray-700">
+
+                        <span className="text-[var(--foreground)]">
                           {typeof rec === 'string' ? rec : (
                             <div className="space-y-2">
                               {(rec as Recommendation).description && <div className="font-medium">{(rec as Recommendation).description}</div>}
-                              {(rec as Recommendation).category && <div className="text-sm text-gray-600">Category: {(rec as Recommendation).category}</div>}
-                              {(rec as Recommendation).priority && <div className="text-sm text-gray-600">Priority: {(rec as Recommendation).priority}</div>}
-                              {(rec as Recommendation).impact && <div className="text-sm text-gray-600">Impact: {(rec as Recommendation).impact}</div>}
-                              {(rec as Recommendation).rationale && <div className="text-sm text-gray-600">Rationale: {(rec as Recommendation).rationale}</div>}
+                              {(rec as Recommendation).category && <div className="text-sm text-[var(--muted-foreground)]">Category: {(rec as Recommendation).category}</div>}
+                              {(rec as Recommendation).priority && <div className="text-sm text-[var(--muted-foreground)]">Priority: {(rec as Recommendation).priority}</div>}
+                              {(rec as Recommendation).impact && <div className="text-sm text-[var(--muted-foreground)]">Impact: {(rec as Recommendation).impact}</div>}
+                              {(rec as Recommendation).rationale && <div className="text-sm text-[var(--muted-foreground)]">Rationale: {(rec as Recommendation).rationale}</div>}
                               {(rec as Recommendation).implementation && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-[var(--muted-foreground)]">
                                   Implementation: {typeof (rec as Recommendation).implementation === 'string' ? (rec as Recommendation).implementation : JSON.stringify((rec as Recommendation).implementation)}
                                 </div>
                               )}
@@ -1086,35 +1071,39 @@ export default function AnalysisPage() {
           <div className="space-y-6">
             {/* System Architecture */}
             <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                 System Architecture
               </h2>
               <div className="space-y-6">
                 {/* Overview */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-2">Overview:</h3>
-                  <p className="text-gray-600">{parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}</p>
+                <div className="bg-[var(--muted)] p-4 rounded-lg">
+                  <h3 className="font-medium text-[var(--foreground)] mb-2">Overview:</h3>
+                  <div className="text-[var(--muted-foreground)]">
+                    {parsedAnalysis.system_architecture?.overview || 'No architecture overview available'}
+                  </div>
                 </div>
                 
                 {/* Data Flow */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-2">Data Flow:</h3>
-                  <p className="text-gray-600">{parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}</p>
+                <div className="bg-[var(--muted)] p-4 rounded-lg">
+                  <h3 className="font-medium text-[var(--foreground)] mb-2">Data Flow:</h3>
+                  <div className="text-[var(--muted-foreground)]">
+                    {parsedAnalysis.system_architecture?.data_flow || 'No data flow information available'}
+                  </div>
                 </div>
 
                 {/* Deployment Model */}
                 {parsedAnalysis.system_architecture?.deployment_model && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-2">Deployment Model:</h3>
-                    <p className="text-gray-600">{parsedAnalysis.system_architecture.deployment_model}</p>
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-2">Deployment Model:</h3>
+                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.deployment_model}</p>
                   </div>
                 )}
 
                 {/* Scalability Approach */}
                 {parsedAnalysis.system_architecture?.scalability_approach && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-700 mb-2">Scalability Approach:</h3>
-                    <p className="text-gray-600">{parsedAnalysis.system_architecture.scalability_approach}</p>
+                  <div className="bg-[var(--muted)] p-4 rounded-lg">
+                    <h3 className="font-medium text-[var(--foreground)] mb-2">Scalability Approach:</h3>
+                    <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.scalability_approach}</p>
                   </div>
                 )}
               </div>
@@ -1123,16 +1112,16 @@ export default function AnalysisPage() {
             {/* System Components */}
             {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   System Components
                 </h2>
                 <div className="grid gap-6">
                   {parsedAnalysis.system_architecture.components.map((component, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
                       {/* Component Header */}
-                      <div className="border-b border-gray-200 pb-3 mb-4">
-                        <h3 className="text-lg font-semibold text-blue-600 mb-2">{component.name}</h3>
-                        <p className="text-gray-600">{component.purpose}</p>
+                      <div className="border-b border-[var(--border)] pb-3 mb-4">
+                        <h3 className="text-lg font-semibold text-[var(--chart-2)] mb-2">{component.name}</h3>
+                        <p className="text-[var(--muted-foreground)]">{component.purpose}</p>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-6">
@@ -1141,11 +1130,10 @@ export default function AnalysisPage() {
                           {/* Technology */}
                           {component.technology && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
                                 Technology
                               </h4>
-                              <p className="text-sm text-gray-600 bg-green-50 p-3 rounded border border-green-200">
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-1)]/10 p-3 rounded border border-[var(--chart-1)]/20">
                                 {component.technology}
                               </p>
                             </div>
@@ -1154,16 +1142,14 @@ export default function AnalysisPage() {
                           {/* Responsibilities */}
                           {component.responsibilities && component.responsibilities.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
                                 Responsibilities
                               </h4>
-                              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                              <div className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded p-3">
                                 <ul className="space-y-2">
                                   {component.responsibilities.map((resp, idx) => (
                                     <li key={idx} className="flex items-start">
-                                      <span className="text-blue-600 mr-2 mt-1">•</span>
-                                      <span className="text-sm text-gray-700">{resp}</span>
+                                      <span className="text-sm text-[var(--foreground)]">{resp}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -1177,16 +1163,14 @@ export default function AnalysisPage() {
                           {/* Dependencies */}
                           {component.dependencies && component.dependencies.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
                                 Dependencies
                               </h4>
-                              <div className="bg-orange-50 border border-orange-200 rounded p-3">
+                              <div className="bg-[var(--chart-5)]/10 border border-[var(--chart-5)]/20 rounded p-3">
                                 <ul className="space-y-2">
                                   {component.dependencies.map((dep, idx) => (
                                     <li key={idx} className="flex items-start">
-                                      <span className="text-orange-600 mr-2 mt-1">•</span>
-                                      <span className="text-sm text-gray-700">{dep}</span>
+                                      <span className="text-sm text-[var(--foreground)]">{dep}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -1197,16 +1181,14 @@ export default function AnalysisPage() {
                           {/* Interfaces */}
                           {component.interfaces && component.interfaces.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
                                 Interfaces
                               </h4>
-                              <div className="bg-purple-50 border border-purple-200 rounded p-3">
+                              <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded p-3">
                                 <ul className="space-y-2">
                                   {component.interfaces.map((iface: string, idx: number) => (
-                                    <li key={idx} className="flex items-start">
-                                      <span className="text-purple-600 mr-2 mt-1">•</span>
-                                      <span className="text-sm text-gray-700 font-mono">{iface}</span>
+                                    <li key={idx} className="flex items-center gap-2">
+                                      <span className="text-sm text-[var(--foreground)] font-mono">{iface}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -1228,20 +1210,20 @@ export default function AnalysisPage() {
           <div className="space-y-6">
             {/* Components */}
             <section>
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                 Components
               </h2>
               <div className="grid gap-4">
                 {parsedAnalysis.system_architecture?.components && parsedAnalysis.system_architecture.components.length > 0 ? (
                   parsedAnalysis.system_architecture.components.map((component, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                      <h3 className="font-semibold text-lg text-blue-600 mb-2">{component.name}</h3>
-                      <p className="text-gray-600 mb-3">{component.purpose}</p>
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
+                      <h3 className="font-semibold text-lg text-[var(--chart-2)] mb-2">{component.name}</h3>
+                      <p className="text-[var(--muted-foreground)] mb-3">{component.purpose}</p>
                       
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Responsibilities:</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                          <h4 className="font-medium text-[var(--foreground)] mb-2">Responsibilities:</h4>
+                          <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
                             {component.responsibilities?.map((resp, idx) => (
                               <li key={idx}>{resp}</li>
                             )) || <li>No responsibilities listed</li>}
@@ -1249,8 +1231,8 @@ export default function AnalysisPage() {
                         </div>
                         
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Dependencies:</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                          <h4 className="font-medium text-[var(--foreground)] mb-2">Dependencies:</h4>
+                          <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
                             {component.dependencies?.map((dep, idx) => (
                               <li key={idx}>{dep}</li>
                             )) || <li>No dependencies listed</li>}
@@ -1260,12 +1242,139 @@ export default function AnalysisPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <p className="text-gray-500 text-center py-4">No components information available</p>
+                  <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
+                    <p className="text-[var(--muted-foreground)] text-center py-4">No components information available</p>
                   </div>
                 )}
               </div>
             </section>
+          </div>
+        );
+
+      case 'design-patterns':
+        return (
+          <div className="space-y-6">
+            {/* Design Patterns */}
+            {parsedAnalysis.design_patterns && parsedAnalysis.design_patterns.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Design Patterns
+                </h2>
+                <div className="space-y-6">
+                  {parsedAnalysis.design_patterns.map((pattern, index) => (
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
+                      {typeof pattern === 'string' ? (
+                        <div className="text-[var(--foreground)]">{pattern}</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Pattern Header */}
+                          <div className="border-b border-[var(--border)] pb-3">
+                            <h3 className="text-lg font-semibold text-[var(--chart-2)]">
+                              {pattern.pattern || 'Design Pattern'}
+                            </h3>
+                            {pattern.location && (
+                              <p className="text-sm text-[var(--muted-foreground)] mt-1 flex items-center gap-2">
+                                <span>
+                                  Location: <span className="font-mono bg-[var(--muted)] px-2 py-1 rounded">{pattern.location}</span>
+                                </span>
+                                {analysisData?.job?.repository_url && (
+                                  <a 
+                                    href={analysisData.job.repository_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] hover:underline transition-colors"
+                                  >
+                                    View Repository →
+                                  </a>
+                                )}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Description */}
+                          {pattern.description && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+                                Description
+                              </h4>
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-1)]/10 p-3 rounded border border-[var(--chart-1)]/20">
+                                {pattern.description}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Benefits */}
+                          {pattern.benefits && pattern.benefits.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+                                Benefits
+                              </h4>
+                              <div className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {pattern.benefits.map((benefit: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{benefit}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Alternatives */}
+                          {pattern.alternatives && pattern.alternatives.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+                                Alternatives
+                              </h4>
+                              <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {pattern.alternatives.map((alternative: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{alternative}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Anti-patterns */}
+                          {pattern.anti_patterns && pattern.anti_patterns.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+                                Anti-patterns
+                              </h4>
+                              <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded p-3">
+                                <ul className="space-y-2">
+                                  {pattern.anti_patterns.map((antiPattern: string, idx: number) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-sm text-[var(--foreground)]">{antiPattern}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Implementation Quality */}
+                          {pattern.implementation_quality && (
+                            <div>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+                                Implementation Quality
+                              </h4>
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-3)]/10 p-3 rounded border border-[var(--chart-3)]/20">
+                                {pattern.implementation_quality}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         );
 
@@ -1275,23 +1384,22 @@ export default function AnalysisPage() {
             {/* Security Considerations */}
             {parsedAnalysis.security_considerations && parsedAnalysis.security_considerations.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Security Considerations
                 </h2>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                   <ul className="space-y-2">
                     {parsedAnalysis.security_considerations.map((security, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-red-600 mr-2">•</span>
-                        <span className="text-gray-700">
+                        <span className="text-[var(--foreground)]">
                           {typeof security === 'string' ? security : (
                             <div className="space-y-1">
                               {security.description && <div className="font-medium">{security.description}</div>}
-                              {security.category && <div className="text-sm text-gray-600">Category: {security.category}</div>}
-                              {security.priority && <div className="text-sm text-gray-600">Priority: {security.priority}</div>}
-                              {security.impact && <div className="text-sm text-gray-600">Impact: {security.impact}</div>}
+                              {security.category && <div className="text-sm text-[var(--muted-foreground)]">Category: {security.category}</div>}
+                              {security.priority && <div className="text-sm text-[var(--muted-foreground)]">Priority: {security.priority}</div>}
+                              {security.impact && <div className="text-sm text-[var(--muted-foreground)]">Impact: {security.impact}</div>}
                               {security.implementation && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-[var(--muted-foreground)]">
                                   Implementation: {typeof security.implementation === 'string' ? security.implementation : JSON.stringify(security.implementation)}
                                 </div>
                               )}
@@ -1308,20 +1416,20 @@ export default function AnalysisPage() {
             {/* Error Handling */}
             {parsedAnalysis.error_handling && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Error Handling
                 </h2>
                 <div className="space-y-4">
                   {/* Exceptions */}
                   {parsedAnalysis.error_handling.exceptions && parsedAnalysis.error_handling.exceptions.length > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <h3 className="font-medium text-red-800 mb-3">Exceptions:</h3>
+                    <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--destructive)] mb-3">Exceptions:</h3>
                       <div className="grid gap-4">
                         {parsedAnalysis.error_handling.exceptions.map((exception, index) => (
-                          <div key={index} className="bg-white border border-red-200 rounded-lg p-3">
-                            <div className="font-medium text-red-700 mb-2">{exception.type}</div>
-                            <p className="text-sm text-gray-600 mb-2">{exception.description}</p>
-                            <div className="text-xs text-gray-500">
+                          <div key={index} className="bg-[var(--card)] border border-[var(--destructive)]/20 rounded-lg p-3">
+                            <div className="font-medium text-[var(--destructive)] mb-2">{exception.type}</div>
+                            <p className="text-sm text-[var(--muted-foreground)] mb-2">{exception.description}</p>
+                            <div className="text-xs text-[var(--muted-foreground)]">
                               <div><strong>Handling:</strong> {exception.handling}</div>
                               <div><strong>Frequency:</strong> {exception.frequency}</div>
                             </div>
@@ -1333,14 +1441,14 @@ export default function AnalysisPage() {
 
                   {/* Strategies */}
                   {parsedAnalysis.error_handling.strategies && parsedAnalysis.error_handling.strategies.length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <h3 className="font-medium text-yellow-800 mb-3">Strategies:</h3>
+                    <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--chart-3)] mb-3">Strategies:</h3>
                       <div className="grid gap-4">
                         {parsedAnalysis.error_handling.strategies.map((strategy, index) => (
-                          <div key={index} className="bg-white border border-yellow-200 rounded-lg p-3">
-                            <div className="font-medium text-yellow-700 mb-2">{strategy.strategy}</div>
-                            <p className="text-sm text-gray-600 mb-2">{strategy.description}</p>
-                            <div className="text-xs text-gray-500">
+                          <div key={index} className="bg-[var(--card)] border border-[var(--chart-3)]/20 rounded-lg p-3">
+                            <div className="font-medium text-[var(--chart-3)] mb-2">{strategy.strategy}</div>
+                            <p className="text-sm text-[var(--muted-foreground)] mb-2">{strategy.description}</p>
+                            <div className="text-xs text-[var(--muted-foreground)]">
                               <div><strong>Coverage:</strong> {strategy.coverage}</div>
                               <div><strong>Effectiveness:</strong> {strategy.effectiveness}</div>
                             </div>
@@ -1352,13 +1460,13 @@ export default function AnalysisPage() {
 
                   {/* Error Analysis */}
                   {parsedAnalysis.error_handling.error_analysis && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <h3 className="font-medium text-gray-800 mb-3">Error Analysis:</h3>
+                    <div className="bg-[var(--muted)] border border-[var(--border)] rounded-lg p-4">
+                      <h3 className="font-medium text-[var(--foreground)] mb-3">Error Analysis:</h3>
                       <div className="space-y-4">
                         {parsedAnalysis.error_handling.error_analysis.gaps && (
                           <div>
-                            <h4 className="font-medium text-gray-700 mb-2">Gaps:</h4>
-                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <h4 className="font-medium text-[var(--foreground)] mb-2">Gaps:</h4>
+                            <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
                               {parsedAnalysis.error_handling.error_analysis.gaps.map((gap, index) => (
                                 <li key={index}>{gap}</li>
                               ))}
@@ -1367,8 +1475,8 @@ export default function AnalysisPage() {
                         )}
                         {parsedAnalysis.error_handling.error_analysis.improvements && (
                           <div>
-                            <h4 className="font-medium text-gray-700 mb-2">Improvements:</h4>
-                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <h4 className="font-medium text-[var(--foreground)] mb-2">Improvements:</h4>
+                            <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
                               {parsedAnalysis.error_handling.error_analysis.improvements.map((improvement, index) => (
                                 <li key={index}>{improvement}</li>
                               ))}
@@ -1377,8 +1485,8 @@ export default function AnalysisPage() {
                         )}
                         {parsedAnalysis.error_handling.error_analysis.overall_strategy && (
                           <div>
-                            <h4 className="font-medium text-gray-700 mb-2">Overall Strategy:</h4>
-                            <p className="text-sm text-gray-600">{parsedAnalysis.error_handling.error_analysis.overall_strategy}</p>
+                            <h4 className="font-medium text-[var(--foreground)] mb-2">Overall Strategy:</h4>
+                            <p className="text-sm text-[var(--muted-foreground)]">{parsedAnalysis.error_handling.error_analysis.overall_strategy}</p>
                           </div>
                         )}
                       </div>
@@ -1396,19 +1504,19 @@ export default function AnalysisPage() {
             {/* Performance Considerations */}
             {parsedAnalysis.performance_considerations && parsedAnalysis.performance_considerations.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Performance Considerations
                 </h2>
                 <div className="space-y-6">
                   {parsedAnalysis.performance_considerations.map((performance, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
                       {typeof performance === 'string' ? (
-                        <div className="text-gray-700">{performance}</div>
+                        <div className="text-[var(--foreground)]">{performance}</div>
                       ) : (
                         <div className="space-y-4">
                           {/* Aspect Header */}
-                          <div className="border-b border-gray-200 pb-3">
-                            <h3 className="text-lg font-semibold text-blue-600">
+                          <div className="border-b border-[var(--border)] pb-3">
+                            <h3 className="text-lg font-semibold text-[var(--chart-2)]">
                               {performance.aspect || 'Performance Aspect'}
                             </h3>
                           </div>
@@ -1416,11 +1524,10 @@ export default function AnalysisPage() {
                           {/* Metrics */}
                           {performance.metrics && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">
                                 Metrics
                               </h4>
-                              <p className="text-sm text-gray-600 bg-green-50 p-3 rounded border border-green-200">
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-1)]/10 p-3 rounded border border-[var(--chart-1)]/20">
                                 {performance.metrics}
                               </p>
                             </div>
@@ -1429,16 +1536,14 @@ export default function AnalysisPage() {
                           {/* Bottlenecks */}
                           {performance.bottlenecks && performance.bottlenecks.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">
                                 Bottlenecks
                               </h4>
-                              <div className="bg-red-50 border border-red-200 rounded p-3">
+                              <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded p-3">
                                 <ul className="space-y-2">
                                   {performance.bottlenecks.map((bottleneck: string, idx: number) => (
-                                    <li key={idx} className="flex items-start">
-                                      <span className="text-red-600 mr-2 mt-1">•</span>
-                                      <span className="text-sm text-gray-700">{bottleneck}</span>
+                                    <li key={idx} className="text-sm text-[var(--foreground)]">
+                                      {bottleneck}
                                     </li>
                                   ))}
                                 </ul>
@@ -1449,16 +1554,14 @@ export default function AnalysisPage() {
                           {/* Optimizations */}
                           {performance.optimizations && performance.optimizations.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">
                                 Optimizations
                               </h4>
-                              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                              <div className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded p-3">
                                 <ul className="space-y-2">
                                   {performance.optimizations.map((optimization: string, idx: number) => (
-                                    <li key={idx} className="flex items-start">
-                                      <span className="text-blue-600 mr-2 mt-1">•</span>
-                                      <span className="text-sm text-gray-700">{optimization}</span>
+                                    <li key={idx} className="text-sm text-[var(--foreground)]">
+                                      {optimization}
                                     </li>
                                   ))}
                                 </ul>
@@ -1469,11 +1572,10 @@ export default function AnalysisPage() {
                           {/* Current Implementation */}
                           {performance.current_implementation && (
                             <div>
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                              <h4 className="font-medium text-[var(--foreground)] mb-2">
                                 Current Implementation
                               </h4>
-                              <p className="text-sm text-gray-600 bg-purple-50 p-3 rounded border border-purple-200">
+                              <p className="text-sm text-[var(--muted-foreground)] bg-[var(--chart-4)]/10 p-3 rounded border border-[var(--chart-4)]/20">
                                 {performance.current_implementation}
                               </p>
                             </div>
@@ -1494,35 +1596,35 @@ export default function AnalysisPage() {
             {/* Algorithms */}
             {parsedAnalysis.algorithms && parsedAnalysis.algorithms.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b-2 border-blue-200 pb-2">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Algorithms
                 </h2>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="   p-4">
                   <div className="grid gap-4">
                     {parsedAnalysis.algorithms.map((algorithm, index) => (
-                      <div key={index} className="bg-white border border-green-200 rounded-lg p-4 shadow-sm">
+                      <div key={index} className="bg-[var(--card)] border border-[var(--chart-1)]/20 rounded-lg p-4 shadow-sm">
                         {typeof algorithm === 'string' ? (
-                          <div className="text-gray-700">{algorithm}</div>
+                          <div className="text-[var(--foreground)]">{algorithm}</div>
                         ) : (
                           <div className="space-y-3">
                             {(algorithm as Algorithm).name && (
                               <div>
-                                <h4 className="font-semibold text-lg text-green-600">{(algorithm as Algorithm).name}</h4>
+                                <h4 className="font-semibold text-lg text-[var(--chart-1)]">{(algorithm as Algorithm).name}</h4>
                                 {(algorithm as Algorithm).location && (
-                                  <p className="text-sm text-gray-500">Location: {(algorithm as Algorithm).location}</p>
+                                  <p className="text-sm text-[var(--muted-foreground)]">Location: {(algorithm as Algorithm).location}</p>
                                 )}
                               </div>
                             )}
                             {(algorithm as Algorithm).description && (
                               <div>
-                                <h5 className="font-medium text-gray-700 mb-1">Description:</h5>
-                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).description}</p>
+                                <h5 className="font-medium text-[var(--foreground)] mb-1">Description:</h5>
+                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).description}</p>
                               </div>
                             )}
                             {(algorithm as Algorithm).complexity && (
                               <div>
-                                <h5 className="font-medium text-gray-700 mb-1">Complexity:</h5>
-                                <div className="text-sm text-gray-600">
+                                <h5 className="font-medium text-[var(--foreground)] mb-1">Complexity:</h5>
+                                <div className="text-sm text-[var(--muted-foreground)]">
                                   {(() => {
                                     const complexity = (algorithm as Algorithm).complexity;
                                     if (typeof complexity === 'string') {
@@ -1545,14 +1647,14 @@ export default function AnalysisPage() {
                             )}
                             {(algorithm as Algorithm).optimization_potential && (
                               <div>
-                                <h5 className="font-medium text-gray-700 mb-1">Optimization Potential:</h5>
-                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).optimization_potential}</p>
+                                <h5 className="font-medium text-[var(--foreground)] mb-1">Optimization Potential:</h5>
+                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).optimization_potential}</p>
                               </div>
                             )}
                             {(algorithm as Algorithm).performance_characteristics && (
                               <div>
-                                <h5 className="font-medium text-gray-700 mb-1">Performance Characteristics:</h5>
-                                <p className="text-sm text-gray-600">{(algorithm as Algorithm).performance_characteristics}</p>
+                                <h5 className="font-medium text-[var(--foreground)] mb-1">Performance Characteristics:</h5>
+                                <p className="text-sm text-[var(--muted-foreground)]">{(algorithm as Algorithm).performance_characteristics}</p>
                               </div>
                             )}
                           </div>
@@ -1644,23 +1746,23 @@ export default function AnalysisPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header with Back Button */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                Code Analysis Report
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                Analysis ID: {analysisData?.job?.id || 'Unknown'}
-              </span>
-            
+              <div className="space-y-6">
+          {/* Header with Back Button */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-[var(--foreground)]">
+                  Code Analysis Report
+                </h1>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                <span className="font-mono bg-[var(--muted)] px-2 py-0.5 rounded">
+                  Analysis ID: {analysisData?.job?.id || 'Unknown'}
+                </span>
               
+                
+              </div>
             </div>
-          </div>
           <div className="flex-shrink-0 flex items-center gap-2">
             <Button
               onClick={() => router.push('/analysis')}
@@ -1676,60 +1778,60 @@ export default function AnalysisPage() {
 
         {/* Job Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
             <div className="flex items-center gap-2 mb-2">
-              <GitBranch className="h-4 w-4 text-blue-600" />
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Repository</h3>
+              <GitBranch className="h-4 w-4 text-[var(--chart-2)]" />
+              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Repository</h3>
             </div>
-            <p className="text-lg font-semibold text-gray-900">{analysisData?.job?.repository_name || 'N/A'}</p>
+            <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.repository_name || 'N/A'}</p>
             {analysisData?.job?.repository_url && (
               <a 
                 href={analysisData.job.repository_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-800 truncate block mt-1"
+                className="text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] truncate block mt-1 transition-colors"
               >
                 View Repository →
               </a>
             )}
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
             <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="h-4 w-4 text-green-600" />
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</h3>
+              <BarChart3 className="h-4 w-4 text-[var(--chart-1)]" />
+              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Status</h3>
             </div>
             <div className="flex items-center">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                 analysisData?.job?.status === 'completed' 
-                  ? 'bg-green-100 text-green-800' 
+                  ? 'bg-[var(--chart-1)] text-[var(--primary-foreground)]' 
                   : analysisData?.job?.status === 'processing'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-[var(--chart-3)] text-[var(--primary-foreground)]'
+                  : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
               }`}>
                 {analysisData?.job?.status || 'Unknown'}
               </span>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
             <div className="flex items-center gap-2 mb-2">
-              <Code2 className="h-4 w-4 text-purple-600" />
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Model Used</h3>
+              <Code2 className="h-4 w-4 text-[var(--chart-4)]" />
+              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Model Used</h3>
             </div>
-            <p className="text-lg font-semibold text-gray-900">{analysisData?.job?.model_used || 'N/A'}</p>
-            <p className="text-sm text-gray-600">Tokens: {analysisData?.job?.total_tokens?.toLocaleString() || 0}</p>
+            <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.model_used || 'N/A'}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">Tokens: {analysisData?.job?.total_tokens?.toLocaleString() || 0}</p>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
             <div className="flex items-center gap-2 mb-2">
-              <Calendar className="h-4 w-4 text-orange-600" />
-              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Analysis Type</h3>
+              <Calendar className="h-4 w-4 text-[var(--chart-5)]" />
+              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Analysis Type</h3>
             </div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-lg font-semibold text-[var(--card-foreground)]">
               {analysisData?.job?.analysis_type?.replace('_', ' ').toUpperCase() || 'N/A'}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--muted-foreground)]">
               Created: {analysisData?.job?.created_at ? new Date(analysisData.job.created_at).toLocaleDateString() : 'N/A'}
             </p>
           </div>
@@ -1766,8 +1868,8 @@ export default function AnalysisPage() {
         </div> */}
 
         {/* Tabbed Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="border-b border-gray-200">
+        <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+          <div className="border-b border-[var(--border)]">
             <div className="flex space-x-1 p-4 overflow-x-auto">
               {tabs.map((tab) => (
                 <TabButton

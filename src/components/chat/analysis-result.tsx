@@ -57,7 +57,7 @@ export function AnalysisResult({
   }
 
   return (
-    <Card className={cn("border-2 border-blue-200 bg-blue-50/50", className)}>
+    <Card className={cn("border-2 border-blue-200 ", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

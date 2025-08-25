@@ -6,7 +6,7 @@ import { SidebarFooter } from "./sidebar-footer"
 import { SidebarContentProps } from "./types"
 import { SidebarHeader } from "./sidebar-header"
 import { useSidebarContext } from "@/contexts/sidebar-context"
-import Image from "next/image"
+import { BsLayoutSidebarReverse, BsLayoutSidebar } from "react-icons/bs"
 
 // Single Responsibility: Compose ChatGPT-like sidebar sections
 export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }: SidebarContentProps) {
@@ -47,19 +47,11 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
                     aria-label="Open sidebar"
                     data-testid="sidebar-toggle-button"
                   >
-                    <Image
-                      src="/sidebar-close.svg"
-                      alt="Toggle sidebar"
-                      width={20}
-                      height={20}
-                      className="hidden md:block"
+                    <BsLayoutSidebarReverse
+                      className="hidden md:block h-5 w-5"
                     />
-                    <Image
-                      src="/sidebar-close-mobile.svg"
-                      alt="Toggle sidebar"
-                      width={20}
-                      height={20}
-                      className="block md:hidden"
+                    <BsLayoutSidebarReverse
+                      className="block md:hidden h-5 w-5"
                     />
                     <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
                       Open sidebar
@@ -89,19 +81,11 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
                     aria-label="Close sidebar"
                     data-testid="sidebar-toggle-button"
                   >
-                    <Image
-                      src="/sidebar-close.svg"
-                      alt="Toggle sidebar"
-                      width={20}
-                      height={20}
-                      className="hidden  md:block"
+                    <BsLayoutSidebar
+                      className="hidden md:block h-5 w-5"
                     />
-                    <Image
-                      src="/sidebar-close-mobile.svg"
-                      alt="Toggle sidebar"
-                      width={20}
-                      height={20}
-                      className="block md:hidden"
+                    <BsLayoutSidebar
+                      className="block md:hidden h-5 w-5"
                     />
                     <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
                       Close sidebar

@@ -26,7 +26,7 @@ export function SidebarTrigger({ isOpen, onClick, className }: SidebarTriggerPro
       )}
       aria-label={label}
     >
-      <SidebarSimpleIcon size={16} weight="regular" />
+      <SidebarSimpleIcon size={16} className="text-white" weight="regular" />
       {/* Tooltip */}
       <span
         className={cn(

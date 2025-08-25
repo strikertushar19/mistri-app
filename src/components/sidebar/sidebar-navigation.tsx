@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -17,12 +18,19 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigationProps) {
   const pathname = usePathname()
   const { isCollapsed } = state
-  const { openDropdown, setOpenDropdown } = useSidebarContext()
+  const { openDropdown, setOpenDropdown, expand } = useSidebarContext()
+
+  // Close dropdown when sidebar is collapsed
+  React.useEffect(() => {
+    if (isCollapsed && openDropdown) {
+      setOpenDropdown(null)
+    }
+  }, [isCollapsed, openDropdown, setOpenDropdown])
 
   return (
     <nav className="flex-1 px-2 py-2 space-y-0.5">
       {items.map((item) => {
-        const isActive = pathname === item.href || (item.dropdownItems?.some(dropdownItem => dropdownItem.href === pathname))
+        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/')) || (item.dropdownItems?.some(dropdownItem => dropdownItem.href === pathname))
         const Icon = item.icon
 
         // Handle dropdown items
@@ -32,7 +40,19 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
           return (
             <div key={item.id} className="relative">
               <button
-                onClick={() => setOpenDropdown(isDropdownOpen ? null : item.id)}
+                onClick={() => {
+                  if (isCollapsed) {
+                    // If sidebar is collapsed, expand it first, then open dropdown
+                    expand()
+                    // Small delay to allow sidebar expansion animation to complete
+                    setTimeout(() => {
+                      setOpenDropdown(isDropdownOpen ? null : item.id)
+                    }, 150)
+                  } else {
+                    // If sidebar is expanded, just toggle dropdown
+                    setOpenDropdown(isDropdownOpen ? null : item.id)
+                  }
+                }}
                 className={cn(
                   "group flex items-center rounded-md transition-all duration-300 ease-in-out w-full",
                   "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start",
@@ -77,6 +97,11 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
                     "whitespace-nowrap z-50 pointer-events-none"
                   )}>
                     {item.name}
+                    {item.hasDropdown && (
+                      <div className="text-xs text-[var(--text-secondary)] mt-1">
+                        Click to expand
+                      </div>
+                    )}
                   </div>
                 )}
               </button>
