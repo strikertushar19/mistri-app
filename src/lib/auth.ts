@@ -88,7 +88,7 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && token.sub) {
         session.user.id = token.sub
         session.user.accessToken = token.accessToken
         session.user.refreshToken = token.refreshToken
@@ -107,7 +107,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    signUp: "/signup",
   },
   session: {
     strategy: "jwt",

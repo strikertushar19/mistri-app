@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Button } from "@/components/ui/Button"
+import { useState, useEffect, Suspense } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -58,7 +58,7 @@ interface IntegrationResponse {
   gitlab?: Integration
 }
 
-export default function CodeProvidersPage() {
+function CodeProvidersContent() {
   const [integrations, setIntegrations] = useState<IntegrationResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -315,5 +315,20 @@ export default function CodeProvidersPage() {
         })}
       </div>
     </div>
+  )
+}
+
+export default function CodeProvidersPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Code Provider Integrations</h1>
+        <div className="text-center py-8">
+          <p>Loading integrations...</p>
+        </div>
+      </div>
+    }>
+      <CodeProvidersContent />
+    </Suspense>
   )
 }

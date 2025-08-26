@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ChatInterface } from "@/components/chat/chat-interface"
 
@@ -9,7 +9,16 @@ export default function ChatPage() {
 
   return (
     <DashboardLayout headerContent={headerContent} showDefaultHeader={false}>
-      <ChatInterface renderHeader={setHeaderContent} />
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Loading chat...</h2>
+            <p className="text-muted-foreground">Please wait...</p>
+          </div>
+        </div>
+      }>
+        <ChatInterface renderHeader={setHeaderContent} />
+      </Suspense>
     </DashboardLayout>
   )
 }

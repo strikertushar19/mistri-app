@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { job_id: string } }
+  { params }: { params: Promise<{ job_id: string }> }
 ) {
+  const { job_id } = await params
   try {
     const token = request.headers.get('authorization');
     
@@ -15,7 +16,7 @@ export async function GET(
     }
 
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-    const response = await fetch(`${backendUrl}/analysis/jobs/${params.job_id}/result`, {
+    const response = await fetch(`${backendUrl}/analysis/jobs/${job_id}/result`, {
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',

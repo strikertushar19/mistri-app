@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Repository, Organization, repositoryAPI } from "@/lib/api/repositories"
 import { RepositoryDisplay } from "./repository-display"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   GitBranch, 

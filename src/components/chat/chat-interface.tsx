@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown, ArrowRight, X, History, Plus, Loader2, Database, Code2 } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,

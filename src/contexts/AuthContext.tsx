@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiClient, User, SignUpInput, SignInInput } from '@/lib/api';
+import { authApi, User, RegisterData, LoginData } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (data: SignUpInput) => Promise<void>;
-  signIn: (data: SignInInput) => Promise<void>;
+  signUp: (data: RegisterData) => Promise<void>;
+  signIn: (data: LoginData) => Promise<void>;
   signOut: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -43,16 +43,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Check for token in cookie first
         const token = getCookie('auth_token');
         if (token) {
-          apiClient.setToken(token);
+          // Set token in localStorage for axios interceptor
+          localStorage.setItem('accessToken', token);
         }
         
-        if (apiClient.isAuthenticated()) {
-          const userProfile = await apiClient.getUserProfile();
+        // Try to get current user if token exists
+        if (token) {
+          const userProfile = await authApi.getCurrentUser();
           setUser(userProfile);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        apiClient.clearToken();
+        localStorage.removeItem('accessToken');
         removeCookie('auth_token');
       } finally {
         setLoading(false);
@@ -62,9 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  const signUp = async (data: SignUpInput) => {
+  const signUp = async (data: RegisterData) => {
     try {
-      await apiClient.signUp(data);
+      await authApi.register(data);
       // After successful signup, automatically sign in
       await signIn({ email: data.email, password: data.password });
     } catch (error) {
@@ -73,14 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (data: SignInInput) => {
+  const signIn = async (data: LoginData) => {
     try {
-      const response = await apiClient.signIn(data);
+      const response = await authApi.login(data);
       setUser(response.user);
       
       // Store token in cookie for middleware access
-      if (response.token) {
-        setCookie('auth_token', response.token);
+      if (response.access_token) {
+        setCookie('auth_token', response.access_token);
       }
     } catch (error) {
       console.error('Sign in failed:', error);
@@ -89,16 +91,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = () => {
-    apiClient.clearToken();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     removeCookie('auth_token');
     setUser(null);
   };
 
   const refreshUser = async () => {
     try {
-      console.log('Refreshing user, isAuthenticated:', apiClient.isAuthenticated());
-      if (apiClient.isAuthenticated()) {
-        const userProfile = await apiClient.getUserProfile();
+      const token = localStorage.getItem('accessToken');
+      console.log('Refreshing user, token exists:', !!token);
+      if (token) {
+        const userProfile = await authApi.getCurrentUser();
         console.log('User profile loaded:', userProfile);
         setUser(userProfile);
       } else {
@@ -106,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to refresh user:', error);
-      apiClient.clearToken();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       removeCookie('auth_token');
       setUser(null);
     }

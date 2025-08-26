@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { MessageCircle, Trash2, Archive, Copy, Search, MoreHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,

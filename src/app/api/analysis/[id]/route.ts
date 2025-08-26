@@ -5,15 +5,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   // TODO: Implement GET /api/analysis/[id]
   // - Get specific analysis result by ID
   // - Include detailed results and metrics
   // - Handle analysis status updates
   
   try {
-    const { id } = params
+    // id is already destructured from await params above
 
     // TODO: Query database for analysis by ID
     // TODO: Include detailed results based on analysis type
@@ -82,15 +83,16 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   // TODO: Implement DELETE /api/analysis/[id]
   // - Delete analysis result
   // - Handle cleanup of associated data
   // - Handle authentication and user permissions
   
   try {
-    const { id } = params
+    // id is already destructured from await params above
 
     // TODO: Validate analysis exists and user has permission
     // TODO: Delete from database

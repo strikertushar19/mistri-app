@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { SidebarContent } from "./sidebar-content"
 import { SidebarOverlay } from "./sidebar-overlay"
 import { SidebarProps } from "./types"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { SidebarTrigger } from "." // from index barrel
 

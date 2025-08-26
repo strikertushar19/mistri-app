@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Repository, Organization, repositoryAPI, RepositoryAPIResponse, NoIntegrationResponse } from "@/lib/api/repositories"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { 
   DropdownMenu,
   DropdownMenuContent,

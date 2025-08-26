@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Edit2, Trash2, Copy, Check } from "lucide-react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Message, MessageAvatar, MessageContent, MessageActions, MessageAction } from "@/components/ui/message"
 import { Message as ConversationMessage } from "@/lib/api/conversations"
 import { cn } from "@/lib/utils"
