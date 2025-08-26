@@ -29,15 +29,15 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
         console.log("Settings clicked");
       },
     },
-    {
-      id: "help",
-      name: "Help",
-      icon: QuestionIcon,
-      href: "#", // Keep # for pages that haven't been made yet
-      onClick: () => {
-        console.log("Help clicked");
-      },
-    },
+    // {
+    //   id: "help",
+    //   name: "Help",
+    //   icon: QuestionIcon,
+    //   href: "#", // Keep # for pages that haven't been made yet
+    //   onClick: () => {
+    //     console.log("Help clicked");
+    //   },
+    // },
     // {
     //   id: "logout",
     //   name: "Log out",
