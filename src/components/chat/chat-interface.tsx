@@ -237,12 +237,10 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
 
   // Prompt templates for quick access
   const promptTemplates = [
-    { label: "Code Review", prompt: "Please review this code for best practices, potential bugs, and improvements:" },
-    { label: "Documentation", prompt: "Generate comprehensive documentation for this code:" },
-    { label: "Testing Strategy", prompt: "Suggest a testing strategy for this codebase:" },
-    { label: "Refactoring", prompt: "Suggest refactoring opportunities for this code:" },
-    { label: "Security Review", prompt: "Review this code for security vulnerabilities and best practices:" },
-    { label: "Performance Audit", prompt: "Conduct a performance audit of this code and suggest optimizations:" }
+    { label: "LLD Analysis", prompt: "give me lld analysis of the codebase" },
+    { label: "Gitlab Repositories", prompt: "How many repositories are there in the gitlab and what are their names and what are their organizations" },
+    { label: "Github Repositories", prompt: "How many repositories are there in the github and what are their names " },
+    { label: "Bitbucket Repositories", prompt: "How many repositories are there in the bitbucket and what are their names and what are their organizations" },
   ]
 
   const handleTemplateSelect = (prompt: string, label: string, action?: string) => {
@@ -598,7 +596,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
             </DropdownMenu>
             
             {/* LLD Demo Button */}
-            <Button
+            {/* <Button
               onClick={() => setShowLLDDemo(true)}
               variant="outline"
               size="sm"
@@ -606,7 +604,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
             >
               <Code2 size={14} className="mr-2" />
               LLD Demo
-            </Button>
+            </Button> */}
           </div>
   
           {/* Repository Context Indicator */}
