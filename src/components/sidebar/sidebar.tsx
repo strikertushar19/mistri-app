@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { SidebarContent } from "./sidebar-content"
 import { SidebarOverlay } from "./sidebar-overlay"
@@ -13,6 +13,8 @@ import { SidebarTrigger } from "." // from index barrel
 export function Sidebar({ className, state, onStateChange, navigationItems }: SidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { isOpen, isCollapsed, isFloating } = state
+  const [isHovered, setIsHovered] = useState(false)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Handle click outside to close floating sidebar
   useEffect(() => {
@@ -43,9 +45,39 @@ export function Sidebar({ className, state, onStateChange, navigationItems }: Si
     return () => document.removeEventListener("keydown", handleEscape)
   }, [isOpen, onStateChange])
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleNavigate = () => {
     if (isFloating) {
       onStateChange({ isOpen: false })
+    }
+  }
+
+  // Handle hover events for desktop sidebar with delay
+  const handleMouseEnter = () => {
+    if (!isFloating) {
+      // Clear any existing timeout
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+      // Set hover state immediately
+      setIsHovered(true)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (!isFloating) {
+      // Add a small delay before collapsing to prevent flickering
+      hoverTimeoutRef.current = setTimeout(() => {
+        setIsHovered(false)
+      }, 150) // 150ms delay
     }
   }
 
@@ -82,30 +114,28 @@ export function Sidebar({ className, state, onStateChange, navigationItems }: Si
     )
   }
 
-  // Desktop sidebar (docked mode)
+  // Desktop sidebar (docked mode with hover expansion)
   return (
     <div className="hidden md:block" ref={sidebarRef}>
       <div
         className={cn(
           "group/sidebar md:fixed md:left-0 md:top-0 md:h-full z-[60]",
           "border-r border-token-border-light shrink-0 h-full relative",
-          "bg-[var(--bg-elevated-secondary)] transition-all duration-300 ease-in-out",
-          // Base rail width when collapsed; full width otherwise
-          isCollapsed ? "w-16" : "w-64",
+          "bg-[var(--bg-elevated-secondary)] sidebar-hover-transition",
+          // Hover-based expansion: collapsed by default, expanded on hover
+          isHovered ? "w-64" : "w-16",
           className
         )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Trigger moved into header row via SidebarContent */}
-
         {/* Base content (rail). When collapsed, shows icon-only; when expanded, full content */}
         <SidebarContent 
-          state={state} 
+          state={{ ...state, isCollapsed: !isHovered }} 
           navigationItems={navigationItems}
           onNavigate={handleNavigate}
-          onTrigger={true}
+          onTrigger={false} // Disable manual trigger since we're using hover
         />
-
-        {/* Hover flyout reserved (disabled) */}
       </div>
     </div>
   )

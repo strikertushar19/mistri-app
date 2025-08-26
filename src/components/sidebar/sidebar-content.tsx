@@ -14,85 +14,62 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
   const { toggleCollapse } = useSidebarContext()
 
   return (
-    <div className="flex h-full flex-col bg-[var(--bg-elevated-secondary)]">
+    <div className={cn(
+      "flex h-full flex-col bg-background sidebar-content",
+      isCollapsed ? "" : "expanded"
+    )}>
       {/* Header row: logo/trigger with smooth transition */}
-      <div className="bg-[var(--bg-elevated-secondary)]">
+      <div className="bg-background">
         <div>
           {/* Fixed-height header to prevent layout reflow/flicker during toggle */}
           <div className="relative flex items-center h-12 px-2">
-            {isCollapsed ? (
-              /* Collapsed state: Show logo by default, replace with trigger on hover */
-              <div className="relative w-full flex items-center justify-center group">
-                {/* Logo - visible by default, hidden on hover */}
-                <div className={cn(
-                  "transition-all duration-300 ease-in-out",
-                  "opacity-100 group-hover:opacity-0 group-hover:scale-95"
-                )}>
-                  <SidebarHeader state={state} />
-                </div>
-                
-                {/* Trigger button - replaces logo on hover */}
-                {onTrigger && (
-                  <button
-                    onClick={toggleCollapse}
-                    className={cn(
-                      "text-[var(--text-tertiary)] no-draggable hover:bg-[var(--interactive-bg-secondary-hover)] focus-visible:bg-[var(--interactive-bg-secondary-hover)]",
-                      "touch:h-10 touch:w-10 flex h-9 w-9 items-center justify-center rounded-lg",
-                      "focus-visible:outline-0 disabled:opacity-50 no-draggable cursor-pointer",
-                      "transition-all duration-300 ease-in-out relative z-[70]",
-                      "absolute inset-0 m-auto",
-                      "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100"
-                    )}
-                    aria-expanded={!state.isCollapsed}
-                    aria-label="Open sidebar"
-                    data-testid="sidebar-toggle-button"
-                  >
-                    <BsLayoutSidebarReverse
-                      className="hidden md:block h-5 w-5"
-                    />
-                    <BsLayoutSidebarReverse
-                      className="block md:hidden h-5 w-5"
-                    />
-                    <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
-                      Open sidebar
-                    </span>
-                  </button>
+            {/* Logo - always present, transitions smoothly */}
+            <div className={cn(
+              "sidebar-logo transition-all duration-300 ease-in-out",
+              isCollapsed 
+                ? "collapsed" 
+                : "expanded"
+            )}>
+              <SidebarHeader state={state} />
+            </div>
+            
+            {/* Trigger button - always present, transitions smoothly */}
+            {onTrigger && (
+              <button
+                onClick={toggleCollapse}
+                className={cn(
+                  "text-[var(--text-tertiary)] no-draggable hover:bg-[var(--interactive-bg-secondary-hover)] focus-visible:bg-[var(--interactive-bg-secondary-hover)]",
+                  "touch:h-10 touch:w-10 flex h-9 w-9 items-center justify-center rounded-lg",
+                  "focus-visible:outline-0 disabled:opacity-50 no-draggable cursor-pointer",
+                  "transition-all duration-300 ease-in-out relative z-[70]",
+                  isCollapsed 
+                    ? "absolute inset-0 m-auto opacity-100 scale-100" 
+                    : "ml-auto opacity-100 scale-100"
                 )}
-              </div>
-            ) : (
-              /* Expanded state: Show logo and trigger side by side */
-              <>
-                {/* Logo - visible when expanded */}
-                <div className="transition-all duration-300 ease-in-out">
-                  <SidebarHeader state={state} />
-                </div>
-                
-                {/* ChatGPT-style trigger button */}
-                {onTrigger && (
-                  <button
-                    onClick={toggleCollapse}
-                    className={cn(
-                      "text-[var(--text-tertiary)] no-draggable hover:bg-[var(--interactive-bg-secondary-hover)] focus-visible:bg-[var(--interactive-bg-secondary-hover)]",
-                      "touch:h-10 touch:w-10 flex h-9 w-9 items-center justify-center rounded-lg",
-                      "focus-visible:outline-0 disabled:opacity-50 no-draggable cursor-pointer",
-                      "transition-all duration-300 ease-in-out group relative z-[70] ml-auto"
-                    )}
-                    aria-expanded={!state.isCollapsed}
-                    aria-label="Close sidebar"
-                    data-testid="sidebar-toggle-button"
-                  >
-                    <BsLayoutSidebar
-                      className="hidden md:block h-5 w-5"
-                    />
-                    <BsLayoutSidebar
-                      className="block md:hidden h-5 w-5"
-                    />
-                    <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
-                      Close sidebar
-                    </span>
-                  </button>
+                aria-expanded={!state.isCollapsed}
+                aria-label={isCollapsed ? "Open sidebar" : "Close sidebar"}
+                data-testid="sidebar-toggle-button"
+              >
+                {isCollapsed ? (
+                  <BsLayoutSidebarReverse className="h-5 w-5" />
+                ) : (
+                  <BsLayoutSidebar className="h-5 w-5" />
                 )}
-              </>
+                
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                  <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
+                    Open sidebar
+                  </span>
+                )}
+                
+                {/* Tooltip for expanded state */}
+                {!isCollapsed && (
+                  <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 rounded-full bg-[var(--text-primary)] text-[var(--text-inverted)] text-xs font-medium px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-[9999]">
+                    Close sidebar
+                  </span>
+                )}
+              </button>
             )}
           </div>
         </div>

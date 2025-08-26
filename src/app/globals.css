@@ -365,10 +365,10 @@
   --sidebar-title-primary: #28282880;
 
   /* Surface and Hover States */
-  --surface-hover: #00000012;
+  --surface-hover: #1f1f1f12;
   --main-surface-primary: #fff;
   --main-surface-secondary: #f9f9f9;
-  --main-surface-secondary-selected: #0000001a;
+  --main-surface-secondary-selected: #1f1f1f1a;
 
   /* Shadcn/UI Compatibility Mappings */
   --background: var(--bg-primary);
@@ -409,24 +409,27 @@
 
 .dark {
   /* Next.js Dark Theme Colors */
-  --bg-primary: #000000;
+  --bg-primary: #1f1f1f ;
   --bg-secondary: #111111;
   --bg-tertiary: #1a1a1a;
-  --bg-elevated-primary: #000000;
+  --bg-elevated-primary: #1f1f1f;
   --bg-elevated-secondary: #111111;
+  
+  /* Custom HSL Color */
+  --bg-custom: #171717; /* HSL(0, 0%, 9%) */
 
   /* Next.js Dark Text Colors */
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
-  --text-inverted: #000000;
+  --text-inverted: #1f1f1f;
   --text-accent: #3b82f6;
 
   /* Next.js Dark Icon Colors */
   --icon-primary: #ffffff;
   --icon-secondary: #a1a1aa;
   --icon-tertiary: #71717a;
-  --icon-inverted: #000000;
+  --icon-inverted: #1f1f1f;
   --icon-accent: #3b82f6;
 
   /* Next.js Dark Border Colors */
@@ -435,16 +438,16 @@
   --border-light: #27272a;
 
   /* Next.js Dark Interactive States */
-  --interactive-bg-secondary-default: #00000000;
+  --interactive-bg-secondary-default: #1f1f1f00;
   --interactive-bg-secondary-hover: #ffffff08;
   --interactive-bg-secondary-press: #ffffff12;
-  --interactive-bg-tertiary-default: #000000;
+  --interactive-bg-tertiary-default: #1f1f1f;
   --interactive-bg-tertiary-hover: #111111;
   --interactive-bg-tertiary-press: #1a1a1a;
 
   /* Next.js Dark Sidebar Specific */
-  --sidebar-surface: #000000;
-  --sidebar-surface-primary: #000000;
+  --sidebar-surface: #1f1f1f;
+  --sidebar-surface-primary: #1f1f1f;
   --sidebar-surface-secondary: #111111;
   --sidebar-surface-tertiary: #1a1a1a;
   --sidebar-body-primary: #ffffff;
@@ -453,19 +456,19 @@
 
   /* Next.js Dark Surface and Hover States */
   --surface-hover: #ffffff08;
-  --main-surface-primary: #000000;
+  --main-surface-primary: #1f1f1f;
   --main-surface-secondary: #111111;
   --main-surface-secondary-selected: #ffffff08;
 
   /* Next.js Shadcn/UI Dark Compatibility Mappings */
-  --background: #000000;
+  --background: #171717;
   --foreground: #ffffff;
-  --card: #000000;
+  --card: #1f1f1f;
   --card-foreground: #ffffff;
-  --popover: #000000;
+  --popover: #1f1f1f;
   --popover-foreground: #ffffff;
   --primary: #ffffff;
-  --primary-foreground: #000000;
+  --primary-foreground: #1f1f1f;
   --secondary: #111111;
   --secondary-foreground: #ffffff;
   --muted: #111111;
@@ -484,14 +487,17 @@
   --chart-5: #ef4444;
 
   /* Next.js Dark Sidebar Shadcn/UI Mappings */
-  --sidebar: #000000;
+  --sidebar: #1f1f1f;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #000000;
+  --sidebar-primary-foreground: #1f1f1f;
   --sidebar-accent: #111111;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #27272a;
   --sidebar-ring: #ffffff;
+  
+  /* Custom HSL Color */
+  --bg-custom: #171717; /* HSL(0, 0%, 9%) */
 }
 
 @layer base {
@@ -721,5 +727,79 @@
 
   .prose ul li::marker {
     color: var(--text-secondary);
+  }
+
+  /* Sidebar hover transitions */
+  .sidebar-hover-transition {
+    transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Prevent layout shifts during sidebar expansion */
+  .sidebar-content {
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-content.expanded {
+    white-space: normal;
+  }
+
+  /* Smooth logo positioning transitions */
+  .sidebar-logo {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .sidebar-logo.collapsed {
+    transform: translateX(0);
+  }
+
+  .sidebar-logo.expanded {
+    transform: translateX(0);
+  }
+
+  /* Ensure smooth text transitions in sidebar header */
+  .sidebar-header-text {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: max-width, opacity, transform;
+  }
+
+  /* Smooth footer transitions */
+  .sidebar-footer-actions {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+    transform-origin: top;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Prevent layout shifts during footer transitions */
+  .sidebar-footer-container {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Optimize footer transitions */
+  .sidebar-footer-actions {
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Footer button and link alignment */
+  .sidebar-footer-actions .flex {
+    align-items: center;
+  }
+
+  .sidebar-footer-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-footer-actions a {
+    display: flex;
+    align-items: center;
+    height: 40px;
   }
 }

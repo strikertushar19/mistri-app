@@ -21,6 +21,8 @@ import { ModelSelector } from "./model-selector"
 import { LLDDemo } from "./lld-demo"
 import { conversationsApi, Conversation, Message } from "@/lib/api/conversations"
 import { chatApi, ChatRequest } from "@/lib/api/chat"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { UserMenu } from "@/components/auth/user-menu"
 
 import { useSearchParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -49,33 +51,25 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 ml-2 sm:ml-4 flex-shrink min-w-0">
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleHistory}
           className="h-8 w-8 p-0"
         >
-          <History className="h-4 w-4" />
+          {/* <History className="h-4 w-4" /> */}
         </Button>
-        <div>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+        <div className="min-w-0">
+          {/* <h2 className="text-lg font-semibold text-[var(--text-primary)] truncate max-w-[140px] sm:max-w-none">
             {currentConversation?.title || "New Conversation"}
           </h2>
           {currentConversation && (
-            <p className="text-sm text-[var(--text-secondary)]">
+            <p className="text-sm text-[var(--text-secondary)] truncate">
               {messages.length} messages
             </p>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <ModelSelector
-          selectedModel={selectedModel}
-          onModelSelect={onModelSelect}
-        />
-        <Button
+          )} */}
+           <Button
           variant="outline"
           size="sm"
           onClick={onCreateNewConversation}
@@ -84,6 +78,17 @@ export function ChatHeader({
           <Plus className="h-4 w-4 mr-1" />
           New
         </Button>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <ModelSelector
+          selectedModel={selectedModel}
+          onModelSelect={onModelSelect}
+        />
+       
+        <ThemeToggle />
+        <UserMenu />
       </div>
     </>
   )
@@ -355,9 +360,23 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
     setSelectedRepositories(prev => {
       const exists = prev.find(r => r.id === repo.id && r.full_name === repo.full_name)
       if (exists) {
+        // Remove the repository if it already exists
         return prev.filter(r => !(r.id === repo.id && r.full_name === repo.full_name))
       }
-      return [...prev, repo]
+      
+      // Check if there's already a repository selected
+      if (prev.length > 0) {
+        // Show message that only one repo is allowed
+        toast({
+          title: "Repository Limit Reached",
+          description: "Right now you can add only one repository. We're coming with features to add multiple repositories soon!",
+          variant: "default",
+        })
+        return prev // Return existing repos without adding new one
+      }
+      
+      // Add the new repository (only one allowed)
+      return [repo]
     })
   }
 
@@ -459,7 +478,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                 {/* Repositories Grid */}
                 {selectedRepositories.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-[var(--text-secondary)] mb-2 text-center">Repositories ({selectedRepositories.length})</p>
+                    <p className="text-xs text-[var(--text-secondary)] mb-2 text-center">Repositories ({selectedRepositories.length}/1)</p>
                     <div className="grid grid-cols-5 gap-2 max-h-32 overflow-y-auto">
                       {selectedRepositories.map((repo, index) => (
                         <div 
@@ -599,7 +618,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
               </div>
               {selectedRepositories.length > 0 && (
                 <span className="bg-[var(--bg-secondary)]/80 backdrop-blur-md px-2 py-1 rounded text-[var(--text-secondary)]">
-                  {selectedRepositories.length}
+                  {selectedRepositories.length}/1
                 </span>
               )}
               {selectedOrganizations.length > 0 && (

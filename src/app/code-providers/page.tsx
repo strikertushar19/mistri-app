@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
-import { Github, Gitlab, GitBranch } from "lucide-react"
+import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 
 interface Integration {
@@ -233,7 +233,11 @@ export default function CodeProvidersPage() {
   }
 
   // Create default cards even if no integrations exist
-  const providers = ['github', 'gitlab', 'bitbucket']
+  const providers = [
+    { id: 'github', name: 'GitHub', icon: '/github-mark.svg' },
+    { id: 'gitlab', name: 'GitLab', icon: '/gitlab-svgrepo-com.svg' },
+    { id: 'bitbucket', name: 'Bitbucket', icon: '/bitbucket.svg' }
+  ]
 
   return (
     <div className="container mx-auto p-6">
@@ -255,16 +259,20 @@ export default function CodeProvidersPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {providers.map((provider) => {
-          const integration = integrations?.[provider as keyof IntegrationResponse]
+          const integration = integrations?.[provider.id as keyof IntegrationResponse]
           
           return (
-            <Card key={provider}>
+            <Card key={provider.id}>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  {provider === 'github' && <Github />}
-                  {provider === 'gitlab' && <Gitlab />}
-                  {provider === 'bitbucket' && <GitBranch />}
-                  <CardTitle className="capitalize">{provider}</CardTitle>
+                  <Image
+                    src={provider.icon}
+                    alt={`${provider.name} icon`}
+                    width={24}
+                    height={24}
+                    className="h-6 w-6"
+                  />
+                  <CardTitle className="capitalize">{provider.name}</CardTitle>
                 </div>
               </CardHeader>
               
@@ -278,12 +286,12 @@ export default function CodeProvidersPage() {
                       <p><strong>Created:</strong> {new Date(integration.created_at).toLocaleDateString()}</p>
                       <p><strong>Updated:</strong> {new Date(integration.updated_at).toLocaleDateString()}</p>
                       <Button
-                        onClick={() => handleDisconnect(provider)}
-                        disabled={connecting === provider}
+                        onClick={() => handleDisconnect(provider.id)}
+                        disabled={connecting === provider.id}
                         variant="destructive"
                         className="mt-2"
                       >
-                        {connecting === provider ? 'Disconnecting...' : 'Disconnect'}
+                        {connecting === provider.id ? 'Disconnecting...' : 'Disconnect'}
                       </Button>
                     </div>
                   </CardDescription>
@@ -292,11 +300,11 @@ export default function CodeProvidersPage() {
                     <div className="space-y-2">
                       <p>Not connected</p>
                       <Button
-                        onClick={() => handleConnect(provider)}
-                        disabled={connecting === provider}
+                        onClick={() => handleConnect(provider.id)}
+                        disabled={connecting === provider.id}
                         className="mt-2"
                       >
-                        {connecting === provider ? 'Connecting...' : `Connect ${provider.charAt(0).toUpperCase() + provider.slice(1)}`}
+                        {connecting === provider.id ? 'Connecting...' : `Connect ${provider.name}`}
                       </Button>
                     </div>
                   </CardDescription>

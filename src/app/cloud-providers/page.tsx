@@ -67,7 +67,7 @@ export default function CloudProvidersPage() {
                   onClick={() => handleConnect(provider.id)}
                   className="w-full"
                 >
-                  Connect
+                  Coming Soon
                 </Button>
               </CardContent>
             </Card>

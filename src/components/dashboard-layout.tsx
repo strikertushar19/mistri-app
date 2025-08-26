@@ -40,11 +40,7 @@ export function DashboardLayout({
       <div 
         className={cn(
           "transition-all duration-300 ease-in-out bg-transparent",
-          isFloating
-            ? "ml-0"
-            : isCollapsed
-              ? "md:ml-16" // collapsed rail width
-              : "md:ml-72" // expanded width
+      
         )}
       >
         {/* Header */}

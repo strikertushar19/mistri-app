@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/contexts/auth-context";
 
 interface UserProfile {
   id: string
@@ -28,7 +29,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const { logout } = useAuth()
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem('accessToken')
@@ -76,7 +77,7 @@ export default function SettingsPage() {
         console.error('No access token found')
         return
       }
-
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
               const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
@@ -243,7 +244,11 @@ export default function SettingsPage() {
                 <Input id="confirmPassword" type="password" />
               </div>
               <Button>Update Password</Button>
+              
             </CardContent>
+            <CardFooter>
+              <Button onClick={async () => await logout()}>Logout</Button>
+            </CardFooter>
           </Card>
         </div>
       </div>

@@ -15,7 +15,7 @@ export function SidebarHeader({ state, className }: SidebarHeaderProps) {
 
   return (
     <div className={cn(
-      "flex items-center transition-all duration-300 min-w-0",
+      "flex items-center transition-all bg-background duration-300 min-w-0",
       isCollapsed ? "px-3 py-3" : "px-3 py-3",
       className
     )}>
@@ -32,11 +32,15 @@ export function SidebarHeader({ state, className }: SidebarHeaderProps) {
           </span>
         </div>
         
-        {!isCollapsed && (
-          <div className="flex flex-col min-w-0">
-            <span className="font-medium text-sm tracking-tight truncate">Mistri AI</span>
-          </div>
-        )}
+        {/* Text - always present, transitions smoothly */}
+        <div className={cn(
+          "sidebar-header-text flex flex-col min-w-0 overflow-hidden",
+          isCollapsed 
+            ? "max-w-0 opacity-0 scale-95" 
+            : "max-w-[120px] opacity-100 scale-100"
+        )}>
+          <span className="font-medium text-sm tracking-tight truncate whitespace-nowrap">Mistri AI</span>
+        </div>
       </Link>
 
       {/* Internal toggle removed as per requirements */}

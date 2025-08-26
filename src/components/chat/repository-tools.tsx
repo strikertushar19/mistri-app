@@ -146,6 +146,17 @@ export function RepositoryTools({
 
       {/* Content */}
       <div className="p-4 max-h-[500px] overflow-y-auto">
+        {/* Repository Limit Notice */}
+        {/* <div className="mb-4 p-3 bg-[var(--bg-secondary)] border border-[var(--border-light)] rounded-lg">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <Database className="h-4 w-4" />
+            <span className="font-medium">Repository Limit</span>
+          </div>
+          <p className="text-xs text-blue-500 font-extrabold mt-1">
+            Currently limited to <strong>1 repository</strong> per chat. Multiple repository support coming soon!
+          </p>
+        </div> */}
+        
         <Tabs value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as any)}>
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="github" className="flex items-center space-x-2">
@@ -189,6 +200,9 @@ export function RepositoryTools({
       <div className="p-4 border-t border-[var(--border-light)] bg-[var(--bg-secondary)] rounded-b-lg">
         <p className="text-xs text-[var(--text-secondary)] text-center">
           Click on repositories to add or remove them from your chat context
+        </p>
+        <p className="text-xs dark:text-yellow-500 font-extrabold text-center mt-1">
+          ⚠️ Currently limited to 1 repository selection in context. Multiple repo support coming soon!
         </p>
       </div>
     </div>
