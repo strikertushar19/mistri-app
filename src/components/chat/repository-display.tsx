@@ -307,6 +307,67 @@ export function RepositoryDisplay({
     )
   }
 
+  // Custom avatar component that handles external images gracefully
+  const Avatar = ({ src, alt, name, size = 24 }: { src?: string, alt: string, name: string, size?: number }) => {
+    if (src && typeof src === 'string' && src.trim() !== '') {
+      // Check if it's an external URL that might cause issues
+      const isExternal = src.startsWith('http') && !src.startsWith('/');
+      
+      if (isExternal) {
+        // For external images, use a regular img tag with error handling
+        return (
+          <div className="relative">
+            <img
+              src={src}
+              alt={alt}
+              width={size}
+              height={size}
+              className={`w-${size/4} h-${size/4} rounded-full`}
+              onError={(e) => {
+                // Hide the image and show fallback on error
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) {
+                  fallback.style.display = 'flex';
+                }
+              }}
+            />
+            {/* Fallback text avatar */}
+            <div 
+              className={`w-${size/4} h-${size/4} bg-[var(--bg-secondary)] rounded-full flex items-center justify-center absolute inset-0`}
+              style={{ display: 'none' }}
+            >
+              <span className="text-xs font-medium text-[var(--text-secondary)]">
+                {name && typeof name === 'string' && name.length > 0 ? name.charAt(0).toUpperCase() : '?'}
+              </span>
+            </div>
+          </div>
+        );
+      } else {
+        // For local images, use Next.js Image component
+        return (
+          <Image
+            src={src}
+            alt={alt}
+            width={size}
+            height={size}
+            className={`w-${size/4} h-${size/4} rounded-full`}
+          />
+        );
+      }
+    }
+    
+    // Fallback text avatar
+    return (
+      <div className={`w-${size/4} h-${size/4} bg-[var(--bg-secondary)] rounded-full flex items-center justify-center`}>
+        <span className="text-xs font-medium text-[var(--text-secondary)]">
+          {name && typeof name === 'string' && name.length > 0 ? name.charAt(0).toUpperCase() : '?'}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -430,21 +491,12 @@ export function RepositoryDisplay({
                 className="p-3 border border-[var(--border-light)] rounded-lg bg-[var(--bg-secondary)] opacity-75 transition-colors"
               >
                 <div className="flex items-center space-x-2">
-                  {org.avatar_url && typeof org.avatar_url === 'string' && org.avatar_url.trim() !== '' ? (
-                    <Image 
-                      src={org.avatar_url} 
-                      alt={org.name}
-                      width={24}
-                      height={24}
-                      className="w-6 h-6 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center">
-                      <span className="text-xs font-medium text-[var(--text-secondary)]">
-                        {org.name && typeof org.name === 'string' && org.name.length > 0 ? org.name.charAt(0).toUpperCase() : '?'}
-                      </span>
-                    </div>
-                  )}
+                  <Avatar 
+                    src={org.avatar_url} 
+                    alt={org.name}
+                    name={org.name}
+                    size={24}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {org.name}
