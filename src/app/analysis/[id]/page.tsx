@@ -1109,7 +1109,7 @@ export default function AnalysisPage() {
                 </div>
 
                 {/* Key Components */}
-                {parsedAnalysis.repository_overview?.key_components && parsedAnalysis.repository_overview.key_components.length > 0 && (
+                {parsedAnalysis.repository_overview?.key_components && Array.isArray(parsedAnalysis.repository_overview.key_components) && parsedAnalysis.repository_overview.key_components.length > 0 && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-3">Key Components</h3>
                     <div className="grid gap-2">
@@ -1123,13 +1123,13 @@ export default function AnalysisPage() {
                 )}
 
                 {/* Design Patterns */}
-                {parsedAnalysis.repository_overview?.design_patterns_used && parsedAnalysis.repository_overview.design_patterns_used.length > 0 && (
+                {parsedAnalysis.repository_overview?.design_patterns_used && Array.isArray(parsedAnalysis.repository_overview.design_patterns_used) && parsedAnalysis.repository_overview.design_patterns_used.length > 0 && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-3">Design Patterns Used</h3>
                     <div className="grid gap-2">
                       {parsedAnalysis.repository_overview.design_patterns_used.map((pattern: string, index: number) => (
                         <div key={index} className="bg-[var(--chart-1)]/10 border border-[var(--chart-1)]/20 rounded-lg p-3">
-                          <span className="text-[var(--foreground)] font-medium">{pattern}</span>
+                          <span className="text-sm text-[var(--foreground)] font-medium">{pattern}</span>
                         </div>
                       ))}
                     </div>
@@ -1177,7 +1177,7 @@ export default function AnalysisPage() {
                 )}
 
                 {/* Available Diagrams */}
-                {parsedAnalysis.repository_overview?.diagrams && parsedAnalysis.repository_overview.diagrams.length > 0 && (
+                {parsedAnalysis.repository_overview?.diagrams && Array.isArray(parsedAnalysis.repository_overview.diagrams) && parsedAnalysis.repository_overview.diagrams.length > 0 && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-3">Available Diagrams</h3>
                     <div className="grid gap-2">
@@ -1191,7 +1191,7 @@ export default function AnalysisPage() {
                 )}
 
                 {/* Recommendations */}
-                {parsedAnalysis.repository_overview?.recommendations && parsedAnalysis.repository_overview.recommendations.length > 0 && (
+                {parsedAnalysis.repository_overview?.recommendations && Array.isArray(parsedAnalysis.repository_overview.recommendations) && parsedAnalysis.repository_overview.recommendations.length > 0 && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-3">Key Recommendations</h3>
                     <div className="grid gap-3">
@@ -1306,7 +1306,7 @@ export default function AnalysisPage() {
             </section>
 
             {/* System Components */}
-            {parsedAnalysis.system_architecture.system_architecture?.components && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
+            {parsedAnalysis.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   System Components
@@ -1410,7 +1410,7 @@ export default function AnalysisPage() {
                 Components
               </h2>
               <div className="grid gap-4">
-                {parsedAnalysis.system_architecture.system_architecture?.components && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
+                {parsedAnalysis.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
                   parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
                       <h3 className="font-semibold text-lg text-[var(--chart-2)] mb-2">{component.name}</h3>
@@ -1451,7 +1451,7 @@ export default function AnalysisPage() {
         return (
           <div className="space-y-6">
             {/* Design Patterns */}
-            {parsedAnalysis.design_patterns?.design_patterns && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
+            {parsedAnalysis.design_patterns?.design_patterns && Array.isArray(parsedAnalysis.design_patterns.design_patterns) && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Design Patterns
@@ -1593,7 +1593,7 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.design_patterns.pattern_analysis.missing_patterns && parsedAnalysis.design_patterns.pattern_analysis.missing_patterns.length > 0 && (
+                  {parsedAnalysis.design_patterns?.pattern_analysis?.missing_patterns && Array.isArray(parsedAnalysis.design_patterns.pattern_analysis.missing_patterns) && parsedAnalysis.design_patterns.pattern_analysis.missing_patterns.length > 0 && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-2">Missing Patterns</h3>
                       <ul className="list-disc list-inside text-[var(--muted-foreground)] space-y-1">
@@ -1654,7 +1654,7 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.security_considerations.security_analysis?.compliance && parsedAnalysis.security_considerations.security_analysis.compliance.length > 0 && (
+                  {parsedAnalysis.security_considerations?.security_analysis?.compliance && Array.isArray(parsedAnalysis.security_considerations.security_analysis.compliance) && parsedAnalysis.security_considerations.security_analysis.compliance.length > 0 && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-2">Compliance Issues</h3>
                       <ul className="list-disc list-inside text-[var(--muted-foreground)] space-y-1">
@@ -1761,7 +1761,7 @@ export default function AnalysisPage() {
                 </h2>
                 <div className="space-y-4">
                   {/* Exceptions */}
-                  {parsedAnalysis.error_handling.error_handling?.exceptions && parsedAnalysis.error_handling.error_handling.exceptions.length > 0 && (
+                  {parsedAnalysis.error_handling?.error_handling?.exceptions && Array.isArray(parsedAnalysis.error_handling.error_handling.exceptions) && parsedAnalysis.error_handling.error_handling.exceptions.length > 0 && (
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--destructive)] mb-3">Exceptions:</h3>
                       <div className="grid gap-4">
@@ -1780,7 +1780,7 @@ export default function AnalysisPage() {
                   )}
 
                   {/* Strategies */}
-                  {parsedAnalysis.error_handling.error_handling?.strategies && parsedAnalysis.error_handling.error_handling.strategies.length > 0 && (
+                  {parsedAnalysis.error_handling?.error_handling?.strategies && Array.isArray(parsedAnalysis.error_handling.error_handling.strategies) && parsedAnalysis.error_handling.error_handling.strategies.length > 0 && (
                     <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--chart-3)] mb-3">Strategies:</h3>
                       <div className="grid gap-4">
@@ -1803,7 +1803,7 @@ export default function AnalysisPage() {
                     <div className="bg-[var(--muted)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-3">Error Analysis:</h3>
                       <div className="space-y-4">
-                        {parsedAnalysis.error_handling.error_handling.error_analysis.gaps && (
+                        {parsedAnalysis.error_handling?.error_handling?.error_analysis?.gaps && Array.isArray(parsedAnalysis.error_handling.error_handling.error_analysis.gaps) && (
                           <div>
                             <h4 className="font-medium text-[var(--foreground)] mb-2">Gaps:</h4>
                             <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
@@ -1813,7 +1813,7 @@ export default function AnalysisPage() {
                             </ul>
                           </div>
                         )}
-                        {parsedAnalysis.error_handling.error_handling.error_analysis.improvements && (
+                        {parsedAnalysis.error_handling?.error_handling?.error_analysis?.improvements && Array.isArray(parsedAnalysis.error_handling.error_handling.error_analysis.improvements) && (
                           <div>
                             <h4 className="font-medium text-[var(--foreground)] mb-2">Improvements:</h4>
                             <ul className="list-disc list-inside text-sm text-[var(--muted-foreground)] space-y-1">
@@ -1862,7 +1862,7 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks && parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks.length > 0 && (
+                  {parsedAnalysis.performance_considerations?.performance_analysis?.critical_bottlenecks && Array.isArray(parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks) && parsedAnalysis.performance_considerations.performance_analysis.critical_bottlenecks.length > 0 && (
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--destructive)] mb-3">Critical Bottlenecks</h3>
                       <ul className="space-y-2">
@@ -1893,7 +1893,7 @@ export default function AnalysisPage() {
             )}
 
             {/* Performance Considerations */}
-            {parsedAnalysis.performance_considerations?.performance_considerations && parsedAnalysis.performance_considerations.performance_considerations.length > 0 && (
+            {parsedAnalysis.performance_considerations?.performance_considerations && Array.isArray(parsedAnalysis.performance_considerations.performance_considerations) && parsedAnalysis.performance_considerations.performance_considerations.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Performance Considerations
@@ -1998,7 +1998,7 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.algorithms.algorithm_analysis.bottlenecks && parsedAnalysis.algorithms.algorithm_analysis.bottlenecks.length > 0 && (
+                  {parsedAnalysis.algorithms?.algorithm_analysis?.bottlenecks && Array.isArray(parsedAnalysis.algorithms.algorithm_analysis.bottlenecks) && parsedAnalysis.algorithms.algorithm_analysis.bottlenecks.length > 0 && (
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--destructive)] mb-3">Bottlenecks</h3>
                       <ul className="space-y-2">
@@ -2011,7 +2011,7 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities && parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities.length > 0 && (
+                  {parsedAnalysis.algorithms?.algorithm_analysis?.optimization_opportunities && Array.isArray(parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities) && parsedAnalysis.algorithms.algorithm_analysis.optimization_opportunities.length > 0 && (
                     <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--chart-3)] mb-3">Optimization Opportunities</h3>
                       <ul className="space-y-2">
@@ -2028,7 +2028,7 @@ export default function AnalysisPage() {
             )}
 
             {/* Algorithms */}
-            {parsedAnalysis.algorithms?.algorithms && parsedAnalysis.algorithms.algorithms.length > 0 && (
+            {parsedAnalysis.algorithms?.algorithms && Array.isArray(parsedAnalysis.algorithms.algorithms) && parsedAnalysis.algorithms.algorithms.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Algorithms
@@ -2104,7 +2104,7 @@ export default function AnalysisPage() {
         return (
           <div className="space-y-6">
             {/* Recommendations */}
-            {parsedAnalysis.recommendations?.recommendations && parsedAnalysis.recommendations.recommendations.length > 0 && (
+            {parsedAnalysis.recommendations?.recommendations && Array.isArray(parsedAnalysis.recommendations.recommendations) && parsedAnalysis.recommendations.recommendations.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Recommendations
@@ -2180,21 +2180,21 @@ export default function AnalysisPage() {
                   Recommendations Analysis
                 </h2>
                 <div className="space-y-4">
-                  {parsedAnalysis.recommendations.recommendations_analysis.overall_quality && (
+                  {parsedAnalysis.recommendations?.recommendations_analysis?.overall_quality && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-2">Overall Quality</h3>
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.recommendations.recommendations_analysis.overall_quality}</p>
                     </div>
                   )}
 
-                  {parsedAnalysis.recommendations.recommendations_analysis.maintenance_plan && (
+                  {parsedAnalysis.recommendations?.recommendations_analysis?.maintenance_plan && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-2">Maintenance Plan</h3>
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.recommendations.recommendations_analysis.maintenance_plan}</p>
                     </div>
                   )}
 
-                  {parsedAnalysis.recommendations.recommendations_analysis.critical_improvements && parsedAnalysis.recommendations.recommendations_analysis.critical_improvements.length > 0 && (
+                  {parsedAnalysis.recommendations?.recommendations_analysis?.critical_improvements && Array.isArray(parsedAnalysis.recommendations.recommendations_analysis.critical_improvements) && parsedAnalysis.recommendations.recommendations_analysis.critical_improvements.length > 0 && (
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--destructive)] mb-3">Critical Improvements</h3>
                       <ul className="space-y-2">
@@ -2207,13 +2207,13 @@ export default function AnalysisPage() {
                     </div>
                   )}
 
-                  {parsedAnalysis.recommendations.recommendations_analysis.long_term_goals && parsedAnalysis.recommendations.recommendations_analysis.long_term_goals.length > 0 && (
+                  {parsedAnalysis.recommendations?.recommendations_analysis?.long_term_goals && Array.isArray(parsedAnalysis.recommendations.recommendations_analysis.long_term_goals) && parsedAnalysis.recommendations.recommendations_analysis.long_term_goals.length > 0 && (
                     <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded-lg p-4">
                       <h3 className="font-medium text-[var(--foreground)] mb-3">Long Term Goals</h3>
                       <ul className="space-y-2">
                         {parsedAnalysis.recommendations.recommendations_analysis.long_term_goals.map((goal, index) => (
                           <li key={index} className="flex items-start">
-                                                             <span className="text-[var(--foreground)]">{goal}</span>
+                            <span className="text-[var(--foreground)]">{goal}</span>
                           </li>
                         ))}
                       </ul>
@@ -2229,14 +2229,13 @@ export default function AnalysisPage() {
         return (
           <div className="space-y-6">
             {/* Architecture Diagrams */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
-                Architecture Diagrams
-              </h2>
-              
-
-              
-              <div className="space-y-6">
+            {parsedAnalysis.mermaid_diagrams && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                  Architecture Diagrams
+                </h2>
+                
+                <div className="space-y-6">
                 {/* Component Diagram - Only show if diagram exists and renders */}
                 {parsedAnalysis.mermaid_diagrams?.component_diagram && (
                   <MermaidDiagram 
@@ -2274,9 +2273,10 @@ export default function AnalysisPage() {
                 )}
               </div>
             </section>
+            )}
 
             {/* Generated Diagram Images */}
-            {parsedAnalysis.diagram_images && Object.keys(parsedAnalysis.diagram_images).length > 0 && (
+            {parsedAnalysis.diagram_images && typeof parsedAnalysis.diagram_images === 'object' && Object.keys(parsedAnalysis.diagram_images).length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Generated Diagram Images
