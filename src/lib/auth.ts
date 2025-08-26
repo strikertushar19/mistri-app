@@ -27,6 +27,29 @@ export const authOptions: NextAuthOptions = {
             
             // Check if user already exists and is active
             if (user && user.id && user.is_active) {
+              // Store user data in localStorage for future use
+              if (typeof window !== 'undefined') {
+                const userStorage = {
+                  setUserData: (data: any) => {
+                    try {
+                      localStorage.setItem('userData', JSON.stringify(data))
+                    } catch (error) {
+                      console.error('Error saving user data:', error)
+                    }
+                  }
+                }
+                
+                userStorage.setUserData({
+                  id: user.id,
+                  email: user.email,
+                  firstName: user.first_name,
+                  lastName: user.last_name,
+                  avatarUrl: user.avatar,
+                  createdAt: user.created_at,
+                  provider: user.provider || 'oauth'
+                })
+              }
+              
               return {
                 id: user.id,
                 email: user.email,

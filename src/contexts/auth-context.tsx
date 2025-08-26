@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           first_name: storedUserData.firstName || "",
           last_name: storedUserData.lastName || "",
           avatar: storedUserData.avatarUrl || "",
-          provider: "oauth",
+          provider: storedUserData.provider || "oauth",
           is_verified: true,
           is_active: true,
           created_at: storedUserData.createdAt || new Date().toISOString(),

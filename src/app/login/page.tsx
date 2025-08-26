@@ -122,8 +122,16 @@ export default function LoginPage() {
         }
       }
 
+      // Show loading message
+      toast({
+        title: "Redirecting to Google",
+        description: "Please complete the authentication in the new window",
+      })
+
       // Redirect to backend's Google OAuth endpoint
-      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+      // The backend will handle the OAuth flow and redirect back to our callback
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+      window.location.href = `${backendUrl}/auth/google`
     } catch (error) {
       toast({
         title: "Google sign-in failed",

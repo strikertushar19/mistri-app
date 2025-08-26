@@ -19,6 +19,20 @@ function AuthCallbackContent() {
     const lastName = searchParams.get("last_name")
     const email = searchParams.get("email")
     const userId = searchParams.get("user_id")
+    const provider = searchParams.get("provider") || "google"
+    const error = searchParams.get("error")
+
+    // Handle OAuth errors
+    if (error) {
+      console.error("OAuth error:", error)
+      toast({
+        title: "Authentication failed",
+        description: `OAuth error: ${error}`,
+        variant: "destructive",
+      })
+      router.push("/login")
+      return
+    }
 
     if (success === "true" && accessToken && refreshToken) {
       // Store tokens in localStorage
@@ -33,6 +47,7 @@ function AuthCallbackContent() {
         lastName: lastName || undefined,
         email: email || undefined,
         createdAt: new Date().toISOString(),
+        provider: provider,
       })
 
       // Check if user already exists by verifying token with backend
@@ -45,7 +60,7 @@ function AuthCallbackContent() {
         if (response.ok) {
           return response.json()
         }
-        throw new Error('Token verification failed')
+        throw new Error(`Token verification failed: ${response.status}`)
       })
       .then(userData => {
         // Update stored user data with backend response
@@ -55,7 +70,8 @@ function AuthCallbackContent() {
           firstName: userData.first_name,
           lastName: userData.last_name,
           avatarUrl: userData.avatar || avatarUrl,
-          createdAt: userData.created_at
+          createdAt: userData.created_at,
+          provider: userData.provider || provider,
         })
 
         // Sign in with NextAuth using the tokens
@@ -85,15 +101,17 @@ function AuthCallbackContent() {
         console.error("OAuth callback error:", error)
         toast({
           title: "Authentication failed",
-          description: "Failed to verify user account",
+          description: error.message || "Failed to verify user account",
           variant: "destructive",
         })
         router.push("/login")
       })
-    } else {
+    } else if (!success || !accessToken || !refreshToken) {
+      // Missing required parameters
+      console.error("Missing OAuth parameters:", { success, accessToken: !!accessToken, refreshToken: !!refreshToken })
       toast({
         title: "Authentication failed",
-        description: "Invalid callback parameters",
+        description: "Incomplete authentication response",
         variant: "destructive",
       })
       router.push("/login")

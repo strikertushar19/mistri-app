@@ -7,7 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 
 // User storage utility for managing user data in localStorage
 export const userStorage = {
-  setUserData: (data: any) => {
+  setUserData: (data: {
+    id?: string
+    avatarUrl?: string
+    firstName?: string
+    lastName?: string
+    email?: string
+    createdAt?: string
+    provider?: string
+  }) => {
     try {
       localStorage.setItem('userData', JSON.stringify(data))
     } catch (error) {
