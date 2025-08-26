@@ -592,7 +592,7 @@ export default function AnalysisPage() {
       
       // Strategy 2: Basic cleaning
       () => {
-        let cleaned = rawString
+        const cleaned = rawString
           .replace(/\\n/g, '\\n')
           .replace(/\\r/g, '\\r')
           .replace(/\\t/g, '\\t')
@@ -707,7 +707,7 @@ export default function AnalysisPage() {
         // If we have an odd number of quotes, we have an unclosed string
         if (quoteCount % 2 !== 0) {
           // Find the last unclosed quote and close it
-          let lastQuotePos = cleaned.lastIndexOf('"');
+          const lastQuotePos = cleaned.lastIndexOf('"');
           if (lastQuotePos !== -1) {
             // Check if this quote is actually unclosed (not followed by proper JSON structure)
             const afterQuote = cleaned.substring(lastQuotePos + 1).trim();

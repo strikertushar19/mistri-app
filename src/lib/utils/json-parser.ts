@@ -51,7 +51,7 @@ export function parseJSONWithEscapes(content: any): any {
 export function extractAndReconstructJSON(content: string): any {
   try {
     // Clean the content first to remove problematic characters
-    let cleanedContent = content
+    const cleanedContent = content
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
       .replace(/\\n/g, '\n')
       .replace(/\\t/g, '\t')
