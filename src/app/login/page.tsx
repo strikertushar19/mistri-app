@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { signIn, getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -17,7 +17,50 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const router = useRouter()
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem("accessToken")
+        if (token) {
+          // Verify token is still valid
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          
+          if (response.ok) {
+            // User is already authenticated, redirect to chat
+            router.push("/chat")
+            return
+          }
+        }
+      } catch (error) {
+        // Token is invalid, continue to login form
+        console.log("Invalid token, showing login form")
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Checking authentication...</h2>
+          <p className="text-muted-foreground">Please wait...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,6 +100,28 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
+      // Check if user is already authenticated
+      const token = localStorage.getItem("accessToken")
+      if (token) {
+        // Verify token is still valid
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          
+          if (response.ok) {
+            // User is already authenticated, redirect to chat
+            router.push("/chat")
+            return
+          }
+        } catch (error) {
+          // Token is invalid, continue with OAuth
+          console.log("Invalid token, proceeding with OAuth")
+        }
+      }
+
       // Redirect to backend's Google OAuth endpoint
       window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
     } catch (error) {

@@ -18,6 +18,7 @@ function AuthCallbackContent() {
     const firstName = searchParams.get("first_name")
     const lastName = searchParams.get("last_name")
     const email = searchParams.get("email")
+    const userId = searchParams.get("user_id")
 
     if (success === "true" && accessToken && refreshToken) {
       // Store tokens in localStorage
@@ -26,22 +27,49 @@ function AuthCallbackContent() {
       
       // Store user data including avatar URL in localStorage
       userStorage.setUserData({
+        id: userId || undefined,
         avatarUrl: avatarUrl || undefined,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
         email: email || undefined,
+        createdAt: new Date().toISOString(),
       })
 
-      // Sign in with NextAuth using the tokens
-      signIn("credentials", {
-        accessToken,
-        refreshToken,
-        redirect: false,
-      }).then((result) => {
+      // Check if user already exists by verifying token with backend
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Token verification failed')
+      })
+      .then(userData => {
+        // Update stored user data with backend response
+        userStorage.setUserData({
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          avatarUrl: userData.avatar || avatarUrl,
+          createdAt: userData.created_at
+        })
+
+        // Sign in with NextAuth using the tokens
+        return signIn("credentials", {
+          accessToken,
+          refreshToken,
+          redirect: false,
+        })
+      })
+      .then((result) => {
         if (result?.ok) {
           toast({
             title: "Authentication successful",
-            description: "Welcome!",
+            description: "Welcome back!",
           })
           router.push("/chat")
         } else {
@@ -52,6 +80,15 @@ function AuthCallbackContent() {
           })
           router.push("/login")
         }
+      })
+      .catch((error) => {
+        console.error("OAuth callback error:", error)
+        toast({
+          title: "Authentication failed",
+          description: "Failed to verify user account",
+          variant: "destructive",
+        })
+        router.push("/login")
       })
     } else {
       toast({

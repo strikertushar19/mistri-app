@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/session-provider";
 import { AuthProvider as CustomAuthProvider } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
-
+import { Analytics } from "@vercel/analytics/next"
 const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,6 +35,8 @@ export default function RootLayout({
       <body
         className={`${geist.variable} ${geistMono.variable} antialiased font-sans`}
       >
+                  <Analytics/>
+
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

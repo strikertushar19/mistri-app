@@ -151,16 +151,23 @@ function CodeProvidersContent() {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
       
       // Check if user is authenticated
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem("accessToken")
       if (!token) {
         // Redirect to login if not authenticated
         router.push('/login')
         return
       }
 
+      // Check if integration already exists
+      if (integrations && integrations[provider as keyof IntegrationResponse]) {
+        setError(`${provider.charAt(0).toUpperCase() + provider.slice(1)} is already connected`)
+        setConnecting(null)
+        return
+      }
+
       // Make API call to get OAuth URL with proper authentication
       const response = await fetch(`${API_BASE_URL}/auth/${provider}/init`, {
-        method: 'GET',
+        method: "GET",
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

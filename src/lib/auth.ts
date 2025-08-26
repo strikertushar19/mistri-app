@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
         // Handle OAuth callback with tokens
         if (credentials?.accessToken && credentials?.refreshToken) {
           try {
-            // Verify token with backend
+            // Verify token with backend to get current user
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
               headers: {
                 Authorization: `Bearer ${credentials.accessToken}`
@@ -24,15 +24,22 @@ export const authOptions: NextAuthOptions = {
             })
 
             const user = response.data
-            return {
-              id: user.id,
-              email: user.email,
-              name: `${user.first_name} ${user.last_name}`,
-              firstName: user.first_name,
-              lastName: user.last_name,
-              avatar: user.avatar,
-              accessToken: credentials.accessToken,
-              refreshToken: credentials.refreshToken,
+            
+            // Check if user already exists and is active
+            if (user && user.id && user.is_active) {
+              return {
+                id: user.id,
+                email: user.email,
+                name: `${user.first_name} ${user.last_name}`,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                avatar: user.avatar,
+                accessToken: credentials.accessToken,
+                refreshToken: credentials.refreshToken,
+              }
+            } else {
+              console.error("User not found or inactive:", user)
+              return null
             }
           } catch (error) {
             console.error("Token verification error:", error)

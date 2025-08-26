@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react"
 import { User } from "@/lib/api"
 import { userStorage } from "@/lib/utils"
 
-
 interface AuthContextType {
   user: User | null
   isLoading: boolean
@@ -27,28 +26,129 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (session?.user) {
-      // Get user data from localStorage if available (for OAuth users)
+      // Check if we already have user data in localStorage (from OAuth)
       const storedUserData = userStorage.getUserData()
       
-      // Convert session user to our User type
-      const userData: User = {
-        id: session.user.id || "",
-        email: storedUserData?.email || session.user.email || "",
-        first_name: storedUserData?.firstName || session.user.firstName || "",
-        last_name: storedUserData?.lastName || session.user.lastName || "",
-        avatar: storedUserData?.avatarUrl || session.user.avatar || "",
-        provider: "email",
-        is_verified: true,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      // If we have stored user data, use it (this means OAuth was successful)
+      if (storedUserData && storedUserData.email) {
+        const userData: User = {
+          id: session.user.id || storedUserData.id || "",
+          email: storedUserData.email,
+          first_name: storedUserData.firstName || "",
+          last_name: storedUserData.lastName || "",
+          avatar: storedUserData.avatarUrl || "",
+          provider: "oauth",
+          is_verified: true,
+          is_active: true,
+          created_at: storedUserData.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        setUser(userData)
+        setIsLoading(false)
+        return
       }
-      setUser(userData)
-    } else {
-      setUser(null)
-    }
 
-    setIsLoading(false)
+      // If no stored data, check if we have tokens and verify with backend
+      const accessToken = localStorage.getItem("accessToken")
+      if (accessToken) {
+        // Verify token with backend to get current user
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json()
+          }
+          throw new Error('Token verification failed')
+        })
+        .then(userData => {
+          // Store user data for future use
+          userStorage.setUserData({
+            id: userData.id,
+            email: userData.email,
+            firstName: userData.first_name,
+            lastName: userData.last_name,
+            avatarUrl: userData.avatar,
+            createdAt: userData.created_at
+          })
+          
+          setUser(userData)
+        })
+        .catch(error => {
+          console.error("Token verification error:", error)
+          // Clear invalid tokens
+          localStorage.removeItem("accessToken")
+          localStorage.removeItem("refreshToken")
+          userStorage.clearUserData()
+          setUser(null)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+      } else {
+        // No tokens, create user from session data
+        const userData: User = {
+          id: session.user.id || "",
+          email: session.user.email || "",
+          first_name: session.user.firstName || "",
+          last_name: session.user.lastName || "",
+          avatar: session.user.avatar || "",
+          provider: "email",
+          is_verified: true,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        setUser(userData)
+        setIsLoading(false)
+      }
+    } else {
+      // No session, check if we have valid tokens
+      const accessToken = localStorage.getItem("accessToken")
+      if (accessToken) {
+        // Try to verify token and get user
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json()
+          }
+          throw new Error('Token verification failed')
+        })
+        .then(userData => {
+          // Store user data for future use
+          userStorage.setUserData({
+            id: userData.id,
+            email: userData.email,
+            firstName: userData.first_name,
+            lastName: userData.last_name,
+            avatarUrl: userData.avatar,
+            createdAt: userData.created_at
+          })
+          
+          setUser(userData)
+        })
+        .catch(error => {
+          console.error("Token verification error:", error)
+          // Clear invalid tokens
+          localStorage.removeItem("accessToken")
+          localStorage.removeItem("refreshToken")
+          userStorage.clearUserData()
+          setUser(null)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+      } else {
+        setUser(null)
+        setIsLoading(false)
+      }
+    }
   }, [session, status])
 
   const logout = async () => {
