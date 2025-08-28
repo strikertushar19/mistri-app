@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { Markdown } from "@/components/ui/markdown"
 import { useTextStream } from "@/components/ui/response-stream"
 import { AnalysisResult, isAnalysisResultMessage, extractAnalysisDataFromMessage } from "./analysis-result"
+import { Loader } from "@/components/ui/loader"
 
 // Custom component that combines streaming with markdown rendering for real-time messages only
 function StreamingMarkdown({ content, speed = 25, isRealTime = false }: { content: string; speed?: number; isRealTime?: boolean }) {
@@ -118,6 +119,13 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className, isReal
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [copied, setCopied] = useState(false)
+
+  // Debug loading messages
+  useEffect(() => {
+    if (!message.content || message.content.trim() === '') {
+      console.log('ChatMessage received loading message:', message)
+    }
+  }, [message])
 
   const isUser = message.role === 'user'
   const isAssistant = message.role === 'assistant'
@@ -324,7 +332,15 @@ export function ChatMessage({ message, /* onEdit, onDelete, */ className, isReal
                   </div>
                 ) : (
                   <div className="rounded-lg p-2 text-[var(--text-primary)] prose prose-sm max-w-none break-words whitespace-normal">
-                    {isAnalysisResultMessage(message.content) ? (
+                    {!message.content || message.content.trim() === '' ? (
+                      // Show dots loader for loading messages - centered in the message area
+                      <div className="flex items-center py-8 px-4">
+                        <div className="flex flex-col items-start gap-3">
+                          <Loader variant="dots" size="md" />
+                          <span className="text-sm text-[var(--text-secondary)]">Thinking...</span>
+                        </div>
+                      </div>
+                    ) : isAnalysisResultMessage(message.content) ? (
                       (() => {
                         const analysisData = extractAnalysisDataFromMessage(message.content)
                         return analysisData.analysisId ? (

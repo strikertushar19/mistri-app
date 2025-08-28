@@ -23,6 +23,7 @@ import { conversationsApi, Conversation, Message } from "@/lib/api/conversations
 import { chatApi, ChatRequest } from "@/lib/api/chat"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { UserMenu } from "@/components/auth/user-menu"
+import { Loader } from "@/components/ui/loader"
 
 import { useSearchParams, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -115,6 +116,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   const [sending, setSending] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   
+  // Loading message state for showing loader in chat
+  const [loadingMessage, setLoadingMessage] = useState<Message | null>(null)
+  
   // Repository context
   const [selectedRepositories, setSelectedRepositories] = useState<Repository[]>([])
   const [selectedOrganizations, setSelectedOrganizations] = useState<Organization[]>([])
@@ -157,6 +161,11 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Debug loading message state changes
+  useEffect(() => {
+    console.log('Loading message state changed:', loadingMessage)
+  }, [loadingMessage])
+
   // Render header content when it changes
   useEffect(() => {
     if (renderHeader) {
@@ -183,6 +192,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
     try {
       setLoading(true)
       console.log("Loading conversation:", id)
+      
+      // Clear any existing loading message
+      setLoadingMessage(null)
       
       const conversation = await conversationsApi.getConversation(id)
       console.log("Conversation loaded:", conversation)
@@ -227,12 +239,14 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   const createNewConversation = () => {
     setCurrentConversation(null)
     setMessages([])
+    setLoadingMessage(null)
     router.push('/chat')
   }
 
   const handleConversationSelect = (conversation: Conversation) => {
     router.push(`/chat?conversation=${conversation.id}`)
     setShowHistory(false)
+    setLoadingMessage(null)
   }
 
   // Prompt templates for quick access
@@ -256,6 +270,39 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
     try {
       setSending(true)
       
+      // Create user message immediately
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        conversation_id: currentConversation?.id || 'temp',
+        role: 'user',
+        content: content.trim(),
+        is_edited: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        metadata: undefined
+      }
+      
+      // Add user message to messages immediately
+      setMessages(prev => [...prev, userMessage])
+      
+      // Create a temporary loading message
+      const tempLoadingMessage: Message = {
+        id: `loading-${Date.now()}`,
+        conversation_id: currentConversation?.id || 'temp',
+        role: 'assistant',
+        content: '',
+        is_edited: false,
+        created_at: new Date(Date.now() + 100).toISOString(), // Ensure it's after user message
+        updated_at: new Date(Date.now() + 100).toISOString(),
+        metadata: undefined
+      }
+      
+      console.log('Creating loading message:', tempLoadingMessage)
+      setLoadingMessage(tempLoadingMessage)
+      
+      // Clear input immediately
+      setContent("")
+      
       // Show loading toast for long-running operations
       if (selectedRepositories.length > 0) {
         toast({
@@ -267,7 +314,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       // Prepare chat request
       const chatRequest: ChatRequest = {
         conversation_id: currentConversation?.id,
-        message: content,
+        message: userMessage.content,
         system_message: systemMessage,
         model: selectedModel,
         max_tokens: 1024,
@@ -277,6 +324,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
 
       // Send message to AI
       const response = await chatApi.sendMessage(chatRequest)
+      
+      // Clear loading message
+      setLoadingMessage(null)
       
       // Update conversation and messages
       if (!currentConversation) {
@@ -296,8 +346,6 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
         
         setMessages(updatedMessages)
       }
-
-      setContent("")
       
       // Show success toast
       toast({
@@ -306,6 +354,9 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       })
     } catch (error: any) {
       console.error("Failed to send message:", error)
+      
+      // Clear loading message on error
+      setLoadingMessage(null)
       
       // Show appropriate error message
       let errorMessage = "Failed to send message. Please try again."
@@ -391,6 +442,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
   const clearAllContext = () => {
     setSelectedRepositories([])
     setSelectedOrganizations([])
+    setLoadingMessage(null)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -398,17 +450,6 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       e.preventDefault()
       handleSubmit()
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading conversation...</span>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -432,11 +473,6 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
           <div className="flex flex-col items-center justify-center h-full p-6">
             <Loader2 className="h-8 w-8 animate-spin text-[var(--text-secondary)] mb-4" />
             <p className="text-sm text-[var(--text-secondary)]">Loading authentication...</p>
-          </div>
-        ) : loading ? (
-          <div className="flex flex-col items-center justify-center h-full p-6">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--text-secondary)] mb-4" />
-            <p className="text-sm text-[var(--text-secondary)]">Loading conversation...</p>
           </div>
         ) : !isAuthenticated ? (
           <div className="flex flex-col items-center justify-center h-full p-6">
@@ -500,10 +536,10 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                       {selectedOrganizations.map((org, index) => (
                         <div 
                           key={index} 
-                          className="text-xs text-[var(--text-primary)] bg-[var(--bg-secondary)] border border-[var(--border-light)] px-2 py-1 rounded truncate opacity-75"
-                          title={`${org.name} (Read Only)`}
+                          className="text-xs text-[var(--text-secondary)] bg-[var(--bg-secondary)]/80 backdrop-blur-md border border-[var(--border-light)] px-2 py-1 rounded truncate opacity-75"
+                          title={`${org.login}`}
                         >
-                          {org.name}
+                          {org.login}
                         </div>
                       ))}
                     </div>
@@ -522,6 +558,13 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                   />
                 </ErrorBoundary>
               ))}
+              {loadingMessage && (
+                <ErrorBoundary key={loadingMessage.id}>
+                  <ChatMessage
+                    message={loadingMessage}
+                  />
+                </ErrorBoundary>
+              )}
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -529,7 +572,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
       </div>
   
       {/* Fixed Transparent Input Area */}
-      <div className={cn("fixed bottom-0 left-0 right-0 p-4", (loading || !isAuthenticated) && "opacity-50 pointer-events-none", showHistory && "left-80")}>
+      <div className={cn("fixed bottom-0 left-0 right-0 p-4", showHistory && "left-80")}>
         <div className="max-w-4xl mx-auto bg-transparent">
           {/* Template Dropdown and LLD Demo Button */}
           <div className="mb-4 flex justify-start gap-3">
@@ -604,6 +647,35 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
             >
               <Code2 size={14} className="mr-2" />
               LLD Demo
+            </Button> */}
+            
+            {/* Temporary Test Button for Dots Loader */}
+            {/* <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-[var(--text-secondary)]">Test Loader:</span>
+              <Loader variant="dots" size="md" />
+            </div> */}
+            
+            {/* <Button
+              onClick={() => {
+                const testMessage: Message = {
+                  id: `test-${Date.now()}`,
+                  conversation_id: 'test',
+                  role: 'assistant',
+                  content: '',
+                  is_edited: false,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  metadata: undefined
+                }
+                setLoadingMessage(testMessage)
+                console.log('Test loading message created:', testMessage)
+              }}
+              variant="outline"
+              size="sm"
+              className="group relative bg-[var(--bg-elevated-secondary)]/80 backdrop-blur-md border border-token-border-light hover:bg-[var(--interactive-bg-secondary-hover)]/80 hover:border-token-border-light text-[var(--text-primary)] transition-all duration-200 ease-out shadow-sm hover:shadow-md rounded-lg px-3 py-2 font-medium text-sm"
+            >
+              <Code2 size={14} className="mr-2" />
+              Test Loader
             </Button> */}
           </div>
   
@@ -689,8 +761,6 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
                 <ArrowRight size={14} />
               )}
             </button>
-            
-
           </div>
         </div>
       </div>

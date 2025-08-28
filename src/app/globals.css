@@ -414,7 +414,7 @@
   --bg-tertiary: #1a1a1a;
   --bg-elevated-primary: #1f1f1f;
   --bg-elevated-secondary: #111111;
-  
+
   /* Custom HSL Color */
   --bg-custom: #171717; /* HSL(0, 0%, 9%) */
 
@@ -495,7 +495,7 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #27272a;
   --sidebar-ring: #ffffff;
-  
+
   /* Custom HSL Color */
   --bg-custom: #171717; /* HSL(0, 0%, 9%) */
 }
@@ -801,5 +801,26 @@
     display: flex;
     align-items: center;
     height: 40px;
+  }
+}
+
+/* Loader Animations */
+@keyframes bounce-dots {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes loading-dots {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
   }
 }
