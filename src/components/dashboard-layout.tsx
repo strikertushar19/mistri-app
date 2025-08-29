@@ -45,7 +45,7 @@ export function DashboardLayout({
       >
         {/* Header */}
         <header className={cn(
-          "sticky top-0 z-30 bg-background/95 backdrop-blur-sm",
+          "sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-[var(--border-heavy)]",
           "supports-[backdrop-filter]:bg-background/60"
         )}>
           <div className="flex h-16 items-center justify-between px-6">

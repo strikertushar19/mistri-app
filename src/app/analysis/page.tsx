@@ -26,7 +26,8 @@ import {
   GitBranch,
   FileText,
   Settings,
-  Eye
+  Eye,
+  Layers
 } from 'lucide-react';
 
 // Custom SelectItem component without tick marks
@@ -120,6 +121,8 @@ export default function AnalysisListPage() {
     switch (type) {
       case 'lld_analysis':
         return <BarChart3 className="h-4 w-4" />;
+      case 'hld_analysis':
+        return <Layers className="h-4 w-4" />;
       case 'design_pattern_detector':
         return <Code2 className="h-4 w-4" />;
       case 'architecture_summary':
@@ -237,6 +240,7 @@ export default function AnalysisListPage() {
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="lld_analysis">LLD Analysis</SelectItem>
+                  <SelectItem value="hld_analysis">HLD Analysis</SelectItem>
                   <SelectItem value="design_pattern_detector">Design Patterns</SelectItem>
                   <SelectItem value="architecture_summary">Architecture Summary</SelectItem>
                   <SelectItem value="unit_test_analyzer">Unit Test Analysis</SelectItem>

@@ -19,10 +19,10 @@ export function SidebarContent({ state, navigationItems, onNavigate, onTrigger }
       isCollapsed ? "" : "expanded"
     )}>
       {/* Header row: logo/trigger with smooth transition */}
-      <div className="bg-background">
+      <div className="bg-background border-b border-[var(--border-heavy)]">
         <div>
           {/* Fixed-height header to prevent layout reflow/flicker during toggle */}
-          <div className="relative flex items-center h-12 px-2">
+          <div className="relative flex items-center h-16 px-2">
             {/* Logo - always present, transitions smoothly */}
             <div className={cn(
               "sidebar-logo transition-all duration-300 ease-in-out",

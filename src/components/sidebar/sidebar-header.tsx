@@ -15,8 +15,8 @@ export function SidebarHeader({ state, className }: SidebarHeaderProps) {
 
   return (
     <div className={cn(
-      "flex items-center transition-all bg-background duration-300 min-w-0",
-      isCollapsed ? "px-3 py-3" : "px-3 py-3",
+      "flex items-center transition-all bg-background duration-300 min-w-0 ",
+      isCollapsed ? "px-3 py-4" : "px-3 py-4",
       className
     )}>
       <Link href="/" className="flex items-center gap-2.5 min-w-0 flex-1">

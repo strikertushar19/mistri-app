@@ -95,7 +95,7 @@ export function Sidebar({ className, state, onStateChange, navigationItems }: Si
           ref={sidebarRef}
           className={cn(
             "fixed left-0 top-0 z-[60] h-full transition-all duration-300 ease-in-out",
-            "border-r border-token-border-light shrink-0",
+            "border-r border-[var(--border-heavy)] shrink-0",
             "bg-[var(--bg-elevated-secondary)]",
             isOpen 
               ? "translate-x-0" 
@@ -120,7 +120,7 @@ export function Sidebar({ className, state, onStateChange, navigationItems }: Si
       <div
         className={cn(
           "group/sidebar md:fixed md:left-0 md:top-0 md:h-full z-[60]",
-          "border-r border-token-border-light shrink-0 h-full relative",
+          "border-r border-[var(--border-heavy)] shrink-0 h-full relative",
           "bg-[var(--bg-elevated-secondary)] sidebar-hover-transition",
           // Hover-based expansion: collapsed by default, expanded on hover
           isHovered ? "w-64" : "w-16",
