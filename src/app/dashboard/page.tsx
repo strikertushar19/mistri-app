@@ -159,19 +159,28 @@ export default function DashboardPage() {
           {/* Popular Design Patterns */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-5 w-5" />
-                  Popular Design Patterns
-                  {popularPatterns.length > 6 && (
-                    <span className="text-xs text-muted-foreground font-normal">
-                      (scroll to see more)
-                    </span>
-                  )}
-                </div>
-                <div className="text-right text-sm text-muted-foreground">
-                  <div>{popularPatterns.length} unique patterns</div>
-                  <div>{popularPatterns.reduce((sum, p) => sum + (p.count || 0), 0)} total usage</div>
+              <CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="font-semibold text-base sm:text-lg">Popular Design Patterns</span>
+                    {popularPatterns.length > 6 && (
+                      <span className="ml-2 text-xs text-muted-foreground font-normal">
+                        (scroll to see more)
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-0">
+                    <div>
+                      <span className="font-semibold">{popularPatterns.length}</span> unique patterns in codebases
+                    </div>
+                    <div>
+                      <span className="font-semibold">
+                        {popularPatterns.reduce((sum, p) => sum + (p.count || 0), 0)}
+                      </span>{" "}
+                      total usage in codebases
+                    </div>
+                  </div>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -179,32 +188,37 @@ export default function DashboardPage() {
               {popularPatterns.length > 0 ? (
                 <div className="max-h-64 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                   {popularPatterns.map((pattern, index) => {
-                    // Calculate total usage across all patterns
-                    const totalUsage = popularPatterns.reduce((sum, p) => sum + (p.count || 0), 0)
-                    // Calculate percentage based on total usage
-                    const percentage = totalUsage > 0 ? ((pattern?.count || 0) / totalUsage) * 100 : 0
-                    
+                    const totalUsage = popularPatterns.reduce((sum, p) => sum + (p.count || 0), 0);
+                    const percentage = totalUsage > 0 ? ((pattern?.count || 0) / totalUsage) * 100 : 0;
+
                     return (
-                      <div key={index} className="space-y-2">
+                      <div
+                        key={index}
+                        className="space-y-1 bg-muted/50 rounded-lg px-3 py-2 hover:bg-muted transition-colors"
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm">{pattern?.pattern_name || 'Unknown Pattern'}</span>
-                          <span className="text-sm text-muted-foreground">{pattern?.count || 0} times</span>
+                          <span className="font-medium text-sm truncate max-w-[60%]">
+                            {pattern?.pattern_name || "Unknown Pattern"}
+                          </span>
+                          <span className="text-xs sm:text-sm text-muted-foreground font-semibold">
+                            {pattern?.count || 0} times
+                          </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                          <div
+                            className="bg-blue-500 dark:bg-blue-400 h-2 rounded-full transition-all duration-300 ease-out"
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
-                        <div className="text-xs text-muted-foreground text-center">
-                          {percentage.toFixed(1)}% of total usage
+                        <div className="text-xs text-muted-foreground text-center mt-1">
+                          {percentage.toFixed(1)}% of total usage in codebases
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">
+                <p className="text-muted-foreground text-center py-6 text-sm">
                   No design patterns found yet
                 </p>
               )}
