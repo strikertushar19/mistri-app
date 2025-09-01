@@ -235,6 +235,9 @@ export interface AnalysisJob {
   analysis_type: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   model_used: string
+  commit_hash?: string
+  commit_message?: string
+  commit_date?: string // Added field
   started_at?: string
   completed_at?: string
   created_at: string

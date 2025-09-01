@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BarChart3, GitBranch, Calendar, Code2, DollarSign, Shield, Zap, GitCommit, Layers, Activity, Download } from 'lucide-react';
 
-import { RenderTabContentLLD } from '@/components/analysis/renderTabContentlld';
+import { RenderTabContentLLD, shouldShowTab } from '@/components/analysis/renderTabContentlld';
 import { RenderTabContentHLD } from '@/components/analysis/renderTabContenthld';
 
 interface AnalysisComponent {
@@ -244,12 +244,25 @@ export default function AnalysisPage() {
     }
   }, [analysisId]);
 
-  // Reset active tab when analysis type changes
+  // Reset active tab when analysis type changes or when parsed analysis changes
   useEffect(() => {
     if (analysisData?.job?.analysis_type) {
       setActiveTab('overview');
     }
   }, [analysisData?.job?.analysis_type]);
+
+  // Ensure active tab is valid when parsed analysis changes
+  useEffect(() => {
+    if (parsedAnalysis) {
+      const currentTabs = getTabs();
+      if (currentTabs.length > 0) {
+        const validTabIds = currentTabs.map(tab => tab.id);
+        if (!validTabIds.includes(activeTab)) {
+          setActiveTab('overview');
+        }
+      }
+    }
+  }, [parsedAnalysis, activeTab]);
 
   // Robust JSON parsing function with multiple fallback strategies
   const parseJSONWithFallbacks = (rawString: string): any => {
@@ -744,7 +757,7 @@ export default function AnalysisPage() {
     </div>
   );
 
-  // Tab configuration based on analysis type
+  // Tab configuration based on analysis type and available data
   const getTabs = () => {
     if (analysisData?.job?.analysis_type === 'hld_analysis') {
       return [
@@ -755,7 +768,7 @@ export default function AnalysisPage() {
         { id: 'diagrams', label: 'Diagrams', icon: Activity },
       ];
     } else {
-      return [
+      const allTabs = [
         { id: 'overview', label: 'Overview', icon: BarChart3 },
         { id: 'architecture', label: 'Architecture', icon: Layers },
         { id: 'components', label: 'Components', icon: GitCommit },
@@ -766,6 +779,13 @@ export default function AnalysisPage() {
         { id: 'recommendations', label: 'Recommendations', icon: Code2 },
         { id: 'diagrams', label: 'Diagrams', icon: Activity },
       ];
+
+      // Filter tabs based on available data for LLD analysis
+      if (parsedAnalysis && 'analysis_type' in parsedAnalysis && parsedAnalysis.analysis_type !== 'hld_analysis') {
+        return allTabs.filter(tab => shouldShowTab(tab.id, parsedAnalysis as AnalysisData));
+      }
+      
+      return allTabs;
     }
   };
 

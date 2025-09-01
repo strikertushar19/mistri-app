@@ -27,7 +27,9 @@ import {
   FileText,
   Settings,
   Eye,
-  Layers
+  Layers,
+  GitCommit,
+  MessageSquare
 } from 'lucide-react';
 
 // Custom SelectItem component without tick marks
@@ -80,10 +82,29 @@ export default function AnalysisListPage() {
         params.analysis_type = typeFilter;
       }
 
+      console.log('🔍 Fetching analysis jobs with params:', params);
       const response = await analysisAPI.listAnalysisJobs(params);
+      
+      console.log('📊 Analysis jobs response:', {
+        total: response.total,
+        jobsCount: response.jobs?.length || 0,
+        jobs: response.jobs?.map(job => ({
+          id: job.id,
+          repository_name: job.repository_name,
+          repository_url: job.repository_url,
+          analysis_type: job.analysis_type,
+          status: job.status,
+          commit_hash: job.commit_hash,
+          commit_message: job.commit_message,
+          created_at: job.created_at,
+          completed_at: job.completed_at
+        }))
+      });
+      
       setJobs(response.jobs);
       setTotalJobs(response.total);
     } catch (err) {
+      console.error('❌ Error fetching analysis jobs:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch analysis jobs');
     } finally {
       setLoading(false);
@@ -145,6 +166,10 @@ export default function AnalysisListPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatCommitHash = (hash: string) => {
+    return hash ? hash.substring(0, 8) : '';
   };
 
 
@@ -279,6 +304,36 @@ export default function AnalysisListPage() {
           </Card>
         )}
 
+        {/* Debug Information */}
+        {/* {!loading && !error && jobs.length > 0 && (
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+            <CardHeader>
+              <CardTitle className="text-sm text-blue-800 dark:text-blue-200">Debug Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xs text-blue-700 dark:text-blue-300 space-y-2">
+                <div>Total Jobs: {totalJobs}</div>
+                <div>Filtered Jobs: {filteredJobs.length}</div>
+                <div>Jobs with Commit Hash: {jobs.filter(job => job.commit_hash).length}</div>
+                <div>Jobs with Commit Message: {jobs.filter(job => job.commit_message).length}</div>
+                <div>Jobs with Commit Date: {jobs.filter(job => job.commit_date).length}</div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer font-medium">Raw Job Data</summary>
+                  <pre className="mt-2 p-2 bg-white dark:bg-gray-800 rounded text-xs overflow-auto max-h-40">
+                    {JSON.stringify(jobs.map(job => ({
+                      id: job.id,
+                      repository_name: job.repository_name,
+                      commit_hash: job.commit_hash,
+                      commit_message: job.commit_message,
+                      commit_date: job.commit_date
+                    })), null, 2)}
+                  </pre>
+                </details>
+              </div>
+            </CardContent>
+          </Card>
+        )} */}
+
         {!loading && !error && (
             <div className="space-y-4">
             {filteredJobs.length === 0 ? (
@@ -324,26 +379,84 @@ export default function AnalysisListPage() {
                             </Badge>
             </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
                               <span>Created: {formatDate(job.created_at)}</span>
-                  </div>
+                            </div>
                             {job.completed_at && (
                               <div className="flex items-center gap-2">
                                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
                                 <span>Completed: {formatDate(job.completed_at)}</span>
-              </div>
+                              </div>
                             )}
                             <div className="flex items-center gap-2">
                               <Code2 className="h-4 w-4 text-muted-foreground" />
                               <span>Type: {job.analysis_type.replace('_', ' ')}</span>
-              </div>
-            </div>
-            
-                                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>Model: {job.model_used}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Model: {job.model_used}</span>
+                            </div>
                           </div>
+                          
+                          {/* Commit Information */}
+                          {(() => {
+                            console.log(`🔍 Job ${job.id} commit info:`, {
+                              commit_hash: job.commit_hash,
+                              commit_message: job.commit_message,
+                              commit_date: job.commit_date,
+                              has_commit_hash: !!job.commit_hash,
+                              has_commit_message: !!job.commit_message,
+                              has_commit_date: !!job.commit_date
+                            });
+                            
+                            return job.commit_hash ? (
+                              <div className="mt-3 p-3 bg-muted/50 rounded-lg border">
+                                <div className="flex items-start gap-3">
+                                  <GitCommit className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-sm font-medium text-muted-foreground">Commit:</span>
+                                      <code className="text-xs bg-background px-2 py-1 rounded border">
+                                        {formatCommitHash(job.commit_hash)}
+                                      </code>
+                                    </div>
+                                    {job.commit_message && (
+                                      <div className="flex items-start gap-2">
+                                        <MessageSquare className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs text-muted-foreground line-clamp-2">
+                                          {job.commit_message}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.commit_date && (
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-xs text-muted-foreground">
+                                          {new Date(job.commit_date).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                          })}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                                  <span className="text-xs text-yellow-700 dark:text-yellow-300">
+                                    No commit information available
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
                 </div>
 
                         <div className="flex items-center gap-2 ml-4">

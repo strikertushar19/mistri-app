@@ -549,11 +549,48 @@ interface RenderTabContentLLDProps {
 }
 
 
+// Helper function to check if a tab should be shown based on available data
+export const shouldShowTab = (tabId: string, parsedAnalysis: AnalysisData): boolean => {
+  switch (tabId) {
+    case 'overview':
+      return true; // Always show overview
+    case 'architecture':
+      return !!(parsedAnalysis?.system_architecture?.system_architecture);
+    case 'components':
+      return !!(parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0);
+    case 'design-patterns':
+      return !!(parsedAnalysis?.design_patterns?.design_patterns && Array.isArray(parsedAnalysis.design_patterns.design_patterns) && parsedAnalysis.design_patterns.design_patterns.length > 0);
+    case 'security':
+      return !!(parsedAnalysis?.security_considerations?.security_analysis || (parsedAnalysis?.security_considerations?.security_considerations && Array.isArray(parsedAnalysis.security_considerations.security_considerations) && parsedAnalysis.security_considerations.security_considerations.length > 0));
+    case 'performance':
+      return !!(parsedAnalysis?.performance_considerations?.performance_analysis || (parsedAnalysis?.performance_considerations?.performance_considerations && Array.isArray(parsedAnalysis.performance_considerations.performance_considerations) && parsedAnalysis.performance_considerations.performance_considerations.length > 0));
+    case 'algorithms':
+      return !!(parsedAnalysis?.algorithms?.algorithms && Array.isArray(parsedAnalysis.algorithms.algorithms) && parsedAnalysis.algorithms.algorithms.length > 0);
+    case 'recommendations':
+      return !!(parsedAnalysis?.recommendations?.recommendations && Array.isArray(parsedAnalysis.recommendations.recommendations) && parsedAnalysis.recommendations.recommendations.length > 0);
+    case 'diagrams':
+      return !!(parsedAnalysis?.mermaid_diagrams || parsedAnalysis?.diagram_images);
+    default:
+      return true;
+  }
+};
+
 export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
   activeTab,
   parsedAnalysis,
   analysisData
 }) => {
+    // Check if the current tab should be shown
+    if (!shouldShowTab(activeTab, parsedAnalysis)) {
+      return (
+        <div className="text-center py-8">
+          <div className="text-[var(--muted-foreground)]">
+            No data available for this section
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'overview':
         return (
@@ -773,7 +810,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
                   <h3 className="font-medium text-[var(--foreground)] mb-2">Overview:</h3>
                   <div className="text-[var(--muted-foreground)]">
-                    {parsedAnalysis.system_architecture.system_architecture?.overview || 'No architecture overview available'}
+                    {parsedAnalysis?.system_architecture?.system_architecture?.overview || 'No architecture overview available'}
                   </div>
                 </div>
                 
@@ -781,12 +818,12 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
                   <h3 className="font-medium text-[var(--foreground)] mb-2">Data Flow:</h3>
                   <div className="text-[var(--muted-foreground)]">
-                    {parsedAnalysis.system_architecture.system_architecture?.data_flow || 'No data flow information available'}
+                    {parsedAnalysis?.system_architecture?.system_architecture?.data_flow || 'No data flow information available'}
                   </div>
                 </div>
 
                 {/* Deployment Model */}
-                {parsedAnalysis.system_architecture.system_architecture?.deployment_model && (
+                {parsedAnalysis?.system_architecture?.system_architecture?.deployment_model && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-2">Deployment Model:</h3>
                     <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.system_architecture.deployment_model}</p>
@@ -794,7 +831,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                 )}
 
                 {/* Scalability Approach */}
-                {parsedAnalysis.system_architecture.system_architecture?.scalability_approach && (
+                {parsedAnalysis?.system_architecture?.system_architecture?.scalability_approach && (
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
                     <h3 className="font-medium text-[var(--foreground)] mb-2">Scalability Approach:</h3>
                     <p className="text-[var(--muted-foreground)]">{parsedAnalysis.system_architecture.system_architecture.scalability_approach}</p>
@@ -804,7 +841,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
             </section>
 
             {/* System Components */}
-            {parsedAnalysis.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
+            {parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   System Components
@@ -908,7 +945,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                 Components
               </h2>
               <div className="grid gap-4">
-                {parsedAnalysis.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
+                {parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
                   parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 shadow-sm">
                       <h3 className="font-semibold text-lg text-[var(--chart-2)] mb-2">{component.name}</h3>
@@ -949,7 +986,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Design Patterns */}
-            {parsedAnalysis.design_patterns?.design_patterns && Array.isArray(parsedAnalysis.design_patterns.design_patterns) && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
+            {parsedAnalysis?.design_patterns?.design_patterns && Array.isArray(parsedAnalysis.design_patterns.design_patterns) && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Design Patterns
@@ -1071,7 +1108,7 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
             )}
 
             {/* Pattern Analysis */}
-            {parsedAnalysis.design_patterns?.pattern_analysis && (
+            {parsedAnalysis?.design_patterns?.pattern_analysis && (
               <section>
                 <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
                   Pattern Analysis
