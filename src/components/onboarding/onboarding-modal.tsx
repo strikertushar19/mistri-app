@@ -222,9 +222,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       return;
     }
 
-    // Limit to 5 repositories for LLD analysis
-    if (analysisType === 'lld_analysis' && selectedRepos.length > 5) {
-      setError("You can analyze a maximum of 5 repositories at once for LLD analysis");
+    // Limit to 2 repositories for LLD analysis
+    if (analysisType === 'lld_analysis' && selectedRepos.length > 2) {
+      setError("You can analyze a maximum of 2 repositories at once for LLD analysis");
       return;
     }
 
@@ -241,9 +241,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
       console.log('🔍 Selected repositories for analysis:', selectedRepos);
 
-      // For LLD analysis, create separate jobs for each repository
+      // For LLD analysis, create separate jobs for each repository (max 2)
       if (analysisType === 'lld_analysis') {
-        console.log('🔍 Creating separate LLD analysis jobs for each repository...');
+        console.log('🔍 Creating separate LLD analysis jobs for each repository (max 2)...');
         
         const analysisPromises = selectedRepos.map(async (repo, index) => {
           const requestBody = {
@@ -560,7 +560,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               {/* Repository Selection Info */}
               <div className="mb-4">
                 <p className="text-sm text-[var(--muted-foreground)] mb-2">
-                  Select up to 5 repositories (currently selected: {selectedRepos.length}/5)
+                  Select up to 2 repositories (currently selected: {selectedRepos.length}/2)
                 </p>
               </div>
 
