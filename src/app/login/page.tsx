@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { toast } from "@/components/ui/use-toast"
 import { Separator } from "@/components/ui/separator"
 import { userStorage } from "@/lib/utils"
+import { onboardingAPI } from "@/lib/api/onboarding"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -80,6 +81,9 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else {
+        // Clear onboarding cache on successful login
+        onboardingAPI.clearCache();
+        
         toast({
           title: "Login successful",
           description: "Welcome back!",

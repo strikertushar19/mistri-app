@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { toast } from "@/components/ui/use-toast"
 import { userStorage } from "@/lib/utils"
+import { onboardingAPI } from "@/lib/api/onboarding"
 
 function AuthCallbackContent() {
   const router = useRouter()
@@ -83,6 +84,9 @@ function AuthCallbackContent() {
       })
       .then((result) => {
         if (result?.ok) {
+          // Clear onboarding cache on successful authentication
+          onboardingAPI.clearCache();
+          
           toast({
             title: "Authentication successful",
             description: "Welcome back!",

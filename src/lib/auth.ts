@@ -148,6 +148,8 @@ export const authOptions: NextAuthOptions = {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
+        // Clear onboarding cache on sign out
+        localStorage.removeItem('mistri_onboarding_status')
       }
     }
   }
