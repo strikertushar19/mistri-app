@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Github, GitBranch, Gitlab, ArrowRight, CheckCircle, AlertCircle, Code2, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onComplete,
   onSkip
 }) => {
+  const router = useRouter();
   const [availableProviders, setAvailableProviders] = useState<{
     github: boolean;
     gitlab: boolean;
@@ -220,6 +222,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       return;
     }
 
+    // Limit to 5 repositories for LLD analysis
+    if (analysisType === 'lld_analysis' && selectedRepos.length > 5) {
+      setError("You can analyze a maximum of 5 repositories at once for LLD analysis");
+      return;
+    }
+
     setIsAnalyzing(true);
     setError(null);
 
@@ -231,49 +239,89 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         throw new Error('Not authenticated');
       }
 
-                     console.log('🔍 Selected repositories for analysis:', selectedRepos);
-               
-               // For single repo, use the legacy fields; for multi-repo, use the new fields
-               const requestBody = selectedRepos.length === 1 ? {
-                 repository_url: selectedRepos[0].url,
-                 repository_name: selectedRepos[0].name,
-                 is_multi_repo: false,
-                 analysis_type: analysisType,
-                 model_used: "gemini-1.5-flash"
-               } : {
-                 is_multi_repo: true,
-                 multi_repository_urls: selectedRepos.map(repo => {
-                   console.log(`🔍 Repository ${repo.name} URL:`, repo.url);
-                   return repo.url;
-                 }),
-                 multi_repo_names: selectedRepos.map(repo => {
-                   console.log(`🔍 Repository ${repo.name} Name:`, repo.name);
-                   return repo.name;
-                 }),
-                 analysis_type: analysisType,
-                 model_used: "gemini-1.5-flash"
-               };
-               
-               console.log('🔍 Analysis request body:', requestBody);
+      console.log('🔍 Selected repositories for analysis:', selectedRepos);
 
-      const response = await fetch(`${API_BASE_URL}/analysis/jobs`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
+      // For LLD analysis, create separate jobs for each repository
+      if (analysisType === 'lld_analysis') {
+        console.log('🔍 Creating separate LLD analysis jobs for each repository...');
+        
+        const analysisPromises = selectedRepos.map(async (repo, index) => {
+          const requestBody = {
+            repository_url: repo.url,
+            repository_name: repo.name,
+            is_multi_repo: false,
+            analysis_type: analysisType,
+            model_used: "gemini-1.5-flash"
+          };
+          
+          console.log(`🔍 Creating analysis job ${index + 1}/${selectedRepos.length} for ${repo.name}:`, requestBody);
 
-      if (!response.ok) {
-        throw new Error('Failed to create analysis job');
+          const response = await fetch(`${API_BASE_URL}/analysis/jobs`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to create analysis job for ${repo.name}`);
+          }
+
+          const data = await response.json();
+          console.log(`✅ Analysis job created for ${repo.name}:`, data);
+          return data;
+        });
+
+        // Wait for all analysis jobs to be created
+        const results = await Promise.all(analysisPromises);
+        console.log('✅ All LLD analysis jobs created:', results);
+        
+      } else {
+        // For other analysis types (like HLD), use the existing multi-repo logic
+        const requestBody = selectedRepos.length === 1 ? {
+          repository_url: selectedRepos[0].url,
+          repository_name: selectedRepos[0].name,
+          is_multi_repo: false,
+          analysis_type: analysisType,
+          model_used: "gemini-1.5-flash"
+        } : {
+          is_multi_repo: true,
+          multi_repository_urls: selectedRepos.map(repo => {
+            console.log(`🔍 Repository ${repo.name} URL:`, repo.url);
+            return repo.url;
+          }),
+          multi_repo_names: selectedRepos.map(repo => {
+            console.log(`🔍 Repository ${repo.name} Name:`, repo.name);
+            return repo.name;
+          }),
+          analysis_type: analysisType,
+          model_used: "gemini-1.5-flash"
+        };
+        
+        console.log('🔍 Analysis request body:', requestBody);
+
+        const response = await fetch(`${API_BASE_URL}/analysis/jobs`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create analysis job');
+        }
+
+        const data = await response.json();
+        console.log('Analysis job created:', data);
       }
-
-      const data = await response.json();
-      console.log('Analysis job created:', data);
       
-      // Close modal and refresh status
+      // Close modal, refresh status, and redirect to analysis page
       onComplete();
+      router.push('/analysis');
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create analysis job');
@@ -498,15 +546,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="lld_analysis">Low-Level Design (LLD) Analysis</SelectItem>
-                    <SelectItem value="hld_analysis">High-Level Design (HLD) Analysis</SelectItem>
+                    {/* <SelectItem value="hld_analysis">High-Level Design (HLD) Analysis</SelectItem> */}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                {/* <p className="text-sm text-[var(--muted-foreground)] mt-1">
                   {analysisType === "hld_analysis" 
                     ? "HLD analysis will first run LLD on all selected repositories, then generate a high-level design showing how they work together."
                     : "LLD analysis will analyze each repository individually for detailed design patterns and architecture."
                   }
-                </p>
+                </p> */}
               </div>
 
               {/* Repository Selection Info */}
