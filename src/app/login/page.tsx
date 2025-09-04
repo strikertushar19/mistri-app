@@ -331,7 +331,7 @@ export default function LoginPage() {
               </Link>
             </div>
             
-            {/* <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-muted-foreground">
               Need to verify your email?{" "}
               <Link 
                 href="/auth/resend-verification" 
@@ -339,7 +339,7 @@ export default function LoginPage() {
               >
                 Resend verification email
               </Link>
-            </div> */}
+            </div>
             
             <Button 
               type="button" 
