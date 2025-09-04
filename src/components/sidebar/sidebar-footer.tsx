@@ -54,7 +54,7 @@ export function SidebarFooter({ state, className }: SidebarFooterProps) {
       {/* Footer Action Buttons - always present, transitions smoothly */}
       <div
         className="border-t px-2 py-2 transition-all duration-300 ease-in-out"
-        style={{ borderColor: "var(--border-light, currentColor)" }}
+        style={{ borderColor: "var(--border-heavy, currentColor)" }}
       >
         {/* Action Buttons Container */}
         <div className={cn(

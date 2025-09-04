@@ -168,6 +168,17 @@ export const authApi = {
     const response = await api.put("/auth/profile", data)
     return response.data
   },
+
+  // Verify email
+  verifyEmail: async (token: string): Promise<{ message: string; user: User }> => {
+    const response = await api.post("/auth/verify-email", { token })
+    return response.data
+  },
+
+  // Resend verification email
+  resendVerificationEmail: async (email: string): Promise<void> => {
+    await api.post("/auth/resend-verification", { email })
+  },
 }
 
 

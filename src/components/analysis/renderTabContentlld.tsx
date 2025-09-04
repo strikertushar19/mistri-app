@@ -1,5 +1,57 @@
-import { useState,useRef,useEffect } from "react";
-import { Download } from "lucide-react";
+import React, { useState,useRef,useEffect } from "react";
+import { Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
+// Expandable Accordion Component with Expand All functionality
+const ExpandableAccordion = ({ children, defaultOpenItems = [] }: { children: React.ReactNode, defaultOpenItems?: string[] }) => {
+  const [expandedItems, setExpandedItems] = useState<string[]>(defaultOpenItems);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
+
+  const toggleExpandAll = () => {
+    if (isAllExpanded) {
+      setExpandedItems(defaultOpenItems);
+      setIsAllExpanded(false);
+    } else {
+      // Get all accordion item values from children
+      const allItems = React.Children.toArray(children)
+        .filter((child: any) => child?.props?.value)
+        .map((child: any) => child.props.value);
+      setExpandedItems(allItems);
+      setIsAllExpanded(true);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button
+          onClick={toggleExpandAll}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[var(--muted)] hover:bg-[var(--muted)]/80 text-[var(--foreground)] rounded-md border border-[var(--border)] cursor-pointer transition-colors"
+        >
+          {isAllExpanded ? (
+            <>
+              <ChevronUp className="h-4 w-4" />
+              Collapse All
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4" />
+              Expand All
+            </>
+          )}
+        </button>
+      </div>
+      <Accordion 
+        type="multiple" 
+        value={expandedItems} 
+        onValueChange={setExpandedItems}
+        className="w-full"
+      >
+        {children}
+      </Accordion>
+    </div>
+  );
+};
 
 // Diagram Image Component for displaying generated images with zoom functionality
 const DiagramImageComponent = ({ image, title }: { image: any, title: string }) => {
@@ -134,7 +186,7 @@ const DiagramImageComponent = ({ image, title }: { image: any, title: string }) 
           </button>
           <button
             onClick={handleDownload}
-            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+            className="px-2 py-1 text-xs bg-[var(--foreground)] text-[var(--background)] rounded hover:bg-[var(--foreground)]/90 transition-colors flex items-center gap-1"
             title="Download Diagram"
           >
             <Download className="h-3 w-3" />
@@ -331,10 +383,11 @@ const MermaidDiagram = ({ diagram, title }: { diagram: string, title: string }) 
         <h3 className="font-medium text-gray-700">{title}:</h3>
         <button
           onClick={handleDownload}
-          className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+          className="px-3 py-1 text-sm bg-[var(--sidebar)] text-[var(--sidebar-foreground)] rounded border border-blue-600 hover:bg-[var(--sidebar)]/90 transition-colors flex items-center gap-2 cursor-pointer"
           title="Download Diagram"
+          type="button"
         >
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 pointer-events-none" />
           Download
         </button>
       </div>
@@ -596,14 +649,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Repository Overview */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
-                Repository Overview
-              </h2>
-              <div className="grid gap-6">
-                {/* Basic Information */}
+            <ExpandableAccordion key="overview" defaultOpenItems={['basic-info']}>
+              <AccordionItem value="basic-info">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  Basic Information
+                </AccordionTrigger>
+                <AccordionContent>
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
-                  <h3 className="font-medium text-[var(--foreground)] mb-3">Basic Information</h3>
                   <div className="space-y-3">
                     <div>
                       <span className="font-medium text-[var(--foreground)]">Name:</span>
@@ -626,10 +678,15 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   </div>
                 </div>
+                </AccordionContent>
+              </AccordionItem>
 
-                {/* Architecture & Design */}
+              <AccordionItem value="architecture-design">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  Architecture & Design
+                </AccordionTrigger>
+                <AccordionContent>
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
-                  <h3 className="font-medium text-[var(--foreground)] mb-3">Architecture & Design</h3>
                   <div className="space-y-3">
                     <div>
                       <span className="font-medium text-[var(--foreground)]">Architecture Style:</span>
@@ -642,11 +699,16 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   </div>
                 </div>
+                </AccordionContent>
+              </AccordionItem>
 
-                {/* Key Components */}
                 {parsedAnalysis.repository_overview?.key_components && Array.isArray(parsedAnalysis.repository_overview.key_components) && parsedAnalysis.repository_overview.key_components.length > 0 && (
+                <AccordionItem value="key-components">
+                                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  Key Components
+                </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Key Components</h3>
                     <div className="grid gap-2">
                       {parsedAnalysis.repository_overview.key_components.map((component: string, index: number) => (
                         <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3">
@@ -655,12 +717,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                       ))}
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Design Patterns */}
                 {parsedAnalysis.repository_overview?.design_patterns_used && Array.isArray(parsedAnalysis.repository_overview.design_patterns_used) && parsedAnalysis.repository_overview.design_patterns_used.length > 0 && (
+                <AccordionItem value="design-patterns">
+                                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  Design Patterns Used
+                </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Design Patterns Used</h3>
                     <div className="grid gap-2">
                       {parsedAnalysis.repository_overview.design_patterns_used.map((pattern: string, index: number) => (
                         <div key={index} className="bg-[var(--chart-1)]/10 border border-[var(--chart-1)]/20 rounded-lg p-3">
@@ -669,52 +736,77 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                       ))}
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Performance Considerations */}
                 {parsedAnalysis.repository_overview?.performance_considerations && (
+                <AccordionItem value="performance">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Performance Considerations
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Performance Considerations</h3>
                     <div className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-3">
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.performance_considerations}</p>
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Security  */}
                 {parsedAnalysis.repository_overview?.security_posture && (
+                <AccordionItem value="security">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Security Posture
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Security </h3>
                     <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg p-3">
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.security_posture}</p>
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Algorithms */}
                 {parsedAnalysis.repository_overview?.algorithms && (
+                <AccordionItem value="algorithms">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Algorithms
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Algorithms</h3>
                     <div className="bg-[var(--chart-4)]/10 border border-[var(--chart-4)]/20 rounded-lg p-3">
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.algorithms}</p>
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Error Handling */}
                 {parsedAnalysis.repository_overview?.error_handling && (
+                <AccordionItem value="error-handling">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Error Handling
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Error Handling</h3>
                     <div className="bg-[var(--chart-5)]/10 border border-[var(--chart-5)]/20 rounded-lg p-3">
                       <p className="text-[var(--muted-foreground)]">{parsedAnalysis.repository_overview.error_handling}</p>
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Available Diagrams */}
                 {parsedAnalysis.repository_overview?.diagrams && Array.isArray(parsedAnalysis.repository_overview.diagrams) && parsedAnalysis.repository_overview.diagrams.length > 0 && (
+                <AccordionItem value="diagrams">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Available Diagrams
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Available Diagrams</h3>
                     <div className="grid gap-2">
                       {parsedAnalysis.repository_overview.diagrams.map((diagram: string, index: number) => (
                         <div key={index} className="bg-[var(--chart-2)]/10 border border-[var(--chart-2)]/20 rounded-lg p-3">
@@ -723,12 +815,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                       ))}
                     </div>
                   </div>
+                  </AccordionContent>
+                </AccordionItem>
                 )}
 
-                {/* Recommendations */}
                 {parsedAnalysis.repository_overview?.recommendations && Array.isArray(parsedAnalysis.repository_overview.recommendations) && parsedAnalysis.repository_overview.recommendations.length > 0 && (
+                <AccordionItem value="recommendations">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    Key Recommendations
+                  </AccordionTrigger>
+                  <AccordionContent>
                   <div className="bg-[var(--muted)] p-4 rounded-lg">
-                    <h3 className="font-medium text-[var(--foreground)] mb-3">Key Recommendations</h3>
                     <div className="grid gap-3">
                       {parsedAnalysis.repository_overview.recommendations.map((recommendation: string, index: number) => (
                         <div key={index} className="bg-[var(--chart-3)]/10 border border-[var(--chart-3)]/20 rounded-lg p-3">
@@ -737,9 +834,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                       ))}
                     </div>
                   </div>
-                )}
-              </div>
-            </section>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+            </ExpandableAccordion>
 
             {/* Data Structures */}
             {/* {parsedAnalysis.detailed_design?.data_structures && parsedAnalysis.detailed_design.data_structures.length > 0 && (
@@ -801,10 +899,12 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* System Architecture */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
-                System Architecture
-              </h2>
+            <ExpandableAccordion key="architecture" defaultOpenItems={['architecture-overview']}>
+              <AccordionItem value="architecture-overview">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  System Architecture Overview
+                </AccordionTrigger>
+                <AccordionContent>
               <div className="space-y-6">
                 {/* Overview */}
                 <div className="bg-[var(--muted)] p-4 rounded-lg">
@@ -838,14 +938,16 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                   </div>
                 )}
               </div>
-            </section>
+                </AccordionContent>
+              </AccordionItem>
 
             {/* System Components */}
-            {parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
-                  System Components
-                </h2>
+                          {parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 && (
+                <AccordionItem value="system-components">
+                  <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                    System Components
+                  </AccordionTrigger>
+                  <AccordionContent>
                 <div className="grid gap-6">
                   {parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
@@ -930,9 +1032,11 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                       </div>
                     </div>
                   ))}
-                </div>
-              </section>
-            )}
+                                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+            </ExpandableAccordion>
           </div>
         );
 
@@ -940,10 +1044,12 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Components */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
-                Components
-              </h2>
+            <ExpandableAccordion key="components" defaultOpenItems={['components-list']}>
+              <AccordionItem value="components-list">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  Components
+                </AccordionTrigger>
+                <AccordionContent>
               <div className="grid gap-4">
                 {parsedAnalysis?.system_architecture?.system_architecture?.components && Array.isArray(parsedAnalysis.system_architecture.system_architecture.components) && parsedAnalysis.system_architecture.system_architecture.components.length > 0 ? (
                   parsedAnalysis.system_architecture.system_architecture.components.map((component, index) => (
@@ -978,7 +1084,9 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                   </div>
                 )}
               </div>
-            </section>
+                </AccordionContent>
+              </AccordionItem>
+            </ExpandableAccordion>
           </div>
         );
 
@@ -986,11 +1094,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Design Patterns */}
+            <ExpandableAccordion key="design-patterns" defaultOpenItems={['design-patterns-list']}>
             {parsedAnalysis?.design_patterns?.design_patterns && Array.isArray(parsedAnalysis.design_patterns.design_patterns) && parsedAnalysis.design_patterns.design_patterns.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="design-patterns-list">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Design Patterns
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-6">
                   {parsedAnalysis.design_patterns.design_patterns.map((pattern, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
@@ -1004,21 +1114,49 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                               {pattern.pattern || 'Design Pattern'}
                             </h3>
                             {pattern.location && (
-                              <p className="text-sm text-[var(--muted-foreground)] mt-1 flex items-center gap-2">
-                                <span>
-                                  Location: <span className="font-mono bg-[var(--muted)] px-2 py-1 rounded">{pattern.location}</span>
-                                </span>
+                              <div className="mt-2">
+                                <h4 className="font-medium text-[var(--foreground)] mb-2">Location:</h4>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  {(() => {
+                                    const location = pattern.location;
+                                    if (typeof location === 'string') {
+                                      return location.split(',').map((loc: string, idx: number) => (
+                                        <span 
+                                          key={idx} 
+                                          className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]"
+                                        >
+                                          {loc.trim()}
+                                        </span>
+                                      ));
+                                    } else if (Array.isArray(location)) {
+                                      return (location as any[]).map((loc: any, idx: number) => (
+                                        <span 
+                                          key={idx} 
+                                          className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]"
+                                        >
+                                          {typeof loc === 'string' ? loc.trim() : String(loc).trim()}
+                                        </span>
+                                      ));
+                                    } else {
+                                      return (
+                                        <span className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]">
+                                          {String(location)}
+                                        </span>
+                                      );
+                                    }
+                                  })()}
+                                </div>
                                 {analysisData?.job?.repository_url && (
                                   <a 
                                     href={analysisData.job.repository_url} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] hover:underline transition-colors"
+                                    className="inline-flex items-center gap-1 text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] hover:underline transition-colors"
                                   >
                                     View Repository →
                                   </a>
                                 )}
-                              </p>
+                              </div>
                             )}
                           </div>
 
@@ -1104,15 +1242,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   ))}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Pattern Analysis */}
             {parsedAnalysis?.design_patterns?.pattern_analysis && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                <AccordionItem value="pattern-analysis">
+                  <AccordionTrigger className="text-xl font-semibold text-[var(--foreground)]">
                   Pattern Analysis
-                </h2>
+                  </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.design_patterns.pattern_analysis.pattern_coverage && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
@@ -1139,8 +1279,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                                  </AccordionContent>
+              </AccordionItem>
             )}
+            </ExpandableAccordion>
           </div>
         );
 
@@ -1148,11 +1290,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Security Analysis */}
+            <ExpandableAccordion key="security" defaultOpenItems={['security-analysis']}>
             {parsedAnalysis.security_considerations?.security_analysis && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="security-analysis">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Security Analysis
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.security_considerations.security_analysis.risk_level && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
@@ -1200,15 +1344,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Security Considerations */}
             {parsedAnalysis.security_considerations?.security_considerations && Array.isArray(parsedAnalysis.security_considerations.security_considerations) && parsedAnalysis.security_considerations.security_considerations.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="security-considerations">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Security Considerations
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-6">
                   {parsedAnalysis.security_considerations.security_considerations.map((security: string | SecurityConsideration, index: number) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
@@ -1285,15 +1431,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   ))}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Error Handling */}
             {parsedAnalysis.error_handling && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                <AccordionItem value="error-handling">
+                  <AccordionTrigger className="text-xl font-semibold text-[var(--foreground)]">
                   Error Handling
-                </h2>
+                  </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {/* Exceptions */}
                   {parsedAnalysis.error_handling?.error_handling?.exceptions && Array.isArray(parsedAnalysis.error_handling.error_handling.exceptions) && parsedAnalysis.error_handling.error_handling.exceptions.length > 0 && (
@@ -1368,8 +1516,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                                  </AccordionContent>
+              </AccordionItem>
             )}
+            </ExpandableAccordion>
           </div>
         );
 
@@ -1377,11 +1527,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Performance Analysis */}
+            <ExpandableAccordion key="performance" defaultOpenItems={['performance-analysis']}>
             {parsedAnalysis.performance_considerations?.performance_analysis && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="performance-analysis">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Performance Analysis
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.performance_considerations.performance_analysis.overall_performance && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
@@ -1424,15 +1576,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Performance Considerations */}
             {parsedAnalysis.performance_considerations?.performance_considerations && Array.isArray(parsedAnalysis.performance_considerations.performance_considerations) && parsedAnalysis.performance_considerations.performance_considerations.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="performance-considerations">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Performance Considerations
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-6">
                   {parsedAnalysis.performance_considerations.performance_considerations.map((performance, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
@@ -1511,8 +1665,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   ))}
                 </div>
-              </section>
+                                  </AccordionContent>
+              </AccordionItem>
             )}
+            </ExpandableAccordion>
           </div>
         );
 
@@ -1520,11 +1676,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Algorithm Analysis */}
+            <ExpandableAccordion key="algorithms" defaultOpenItems={['algorithm-analysis']}>
             {parsedAnalysis.algorithms?.algorithm_analysis && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="algorithm-analysis">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Algorithm Analysis
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.algorithms.algorithm_analysis.overall_complexity && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
@@ -1559,15 +1717,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Algorithms */}
             {parsedAnalysis.algorithms?.algorithms && Array.isArray(parsedAnalysis.algorithms.algorithms) && parsedAnalysis.algorithms.algorithms.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="algorithms-list">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Algorithms
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.algorithms.algorithms.map((algorithm, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--chart-1)]/20 rounded-lg p-4 shadow-sm">
@@ -1579,7 +1739,39 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                             <div>
                               <h4 className="font-semibold text-lg text-[var(--chart-1)]">{(algorithm as Algorithm).name}</h4>
                               {(algorithm as Algorithm).location && (
-                                <p className="text-sm text-[var(--muted-foreground)]">Location: {(algorithm as Algorithm).location}</p>
+                                <div className="mt-2">
+                                  <h5 className="font-medium text-[var(--foreground)] mb-2">Location:</h5>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(() => {
+                                      const location = (algorithm as Algorithm).location;
+                                      if (typeof location === 'string') {
+                                        return location.split(',').map((loc: string, idx: number) => (
+                                          <span 
+                                            key={idx} 
+                                            className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]"
+                                          >
+                                            {loc.trim()}
+                                          </span>
+                                        ));
+                                      } else if (Array.isArray(location)) {
+                                        return (location as any[]).map((loc: any, idx: number) => (
+                                          <span 
+                                            key={idx} 
+                                            className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]"
+                                          >
+                                            {typeof loc === 'string' ? loc.trim() : String(loc).trim()}
+                                          </span>
+                                        ));
+                                      } else {
+                                        return (
+                                          <span className="font-mono bg-[var(--muted)] px-2 py-1 rounded text-xs border border-[var(--border)]">
+                                            {String(location)}
+                                          </span>
+                                        );
+                                      }
+                                    })()}
+                                  </div>
+                                </div>
                               )}
                             </div>
                           )}
@@ -1630,8 +1822,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   ))}
                 </div>
-              </section>
+                                  </AccordionContent>
+              </AccordionItem>
             )}
+            </ExpandableAccordion>
           </div>
         );
 
@@ -1639,11 +1833,13 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
         return (
           <div className="space-y-6">
             {/* Recommendations */}
+            <ExpandableAccordion key="recommendations" defaultOpenItems={['recommendations-list']}>
             {parsedAnalysis.recommendations?.recommendations && Array.isArray(parsedAnalysis.recommendations.recommendations) && parsedAnalysis.recommendations.recommendations.length > 0 && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+              <AccordionItem value="recommendations-list">
+                <AccordionTrigger className="text-lg font-medium text-[var(--foreground)] cursor-pointer hover:text-[var(--primary)] transition-colors">
                   Recommendations
-                </h2>
+                </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-6">
                   {parsedAnalysis.recommendations.recommendations.map((rec, index) => (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-6 shadow-sm">
@@ -1705,15 +1901,17 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   ))}
                 </div>
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
             )}
 
             {/* Recommendations Analysis */}
             {parsedAnalysis.recommendations?.recommendations_analysis && (
-              <section>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)] border-b-2 border-[var(--chart-2)] pb-2">
+                <AccordionItem value="recommendations-analysis">
+                  <AccordionTrigger className="text-xl font-semibold text-[var(--foreground)]">
                   Recommendations Analysis
-                </h2>
+                  </AccordionTrigger>
+                  <AccordionContent>
                 <div className="space-y-4">
                   {parsedAnalysis.recommendations?.recommendations_analysis?.overall_quality && (
                     <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4">
@@ -1755,8 +1953,10 @@ export const RenderTabContentLLD: React.FC<RenderTabContentLLDProps> = ({
                     </div>
                   )}
                 </div>
-              </section>
+                                  </AccordionContent>
+              </AccordionItem>
             )}
+            </ExpandableAccordion>
           </div>
         );
 

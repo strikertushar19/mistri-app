@@ -7,6 +7,7 @@ export interface NavigationItem {
   badge?: number
   isLogout?: boolean
   hasDropdown?: boolean
+  hasTopBorder?: boolean
   dropdownItems?: Array<{
     id: string
     name: string

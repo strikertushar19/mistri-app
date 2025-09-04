@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BarChart3, GitBranch, Calendar, Code2, DollarSign, Shield, Zap, GitCommit, Layers, Activity, Download } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { UserMenu } from '@/components/auth/user-menu';
 
 import { RenderTabContentLLD, shouldShowTab } from '@/components/analysis/renderTabContentlld';
 import { RenderTabContentHLD } from '@/components/analysis/renderTabContenthld';
@@ -201,31 +203,6 @@ type AnalysisDataUnion = AnalysisData | {
 
 // Mermaid types are defined in src/types/mermaid.d.ts
 
-// Tab component for better navigation
-const TabButton = ({ 
-  isActive, 
-  onClick, 
-  children, 
-  icon: Icon 
-}: { 
-  isActive: boolean; 
-  onClick: () => void; 
-  children: React.ReactNode;
-  icon: React.ComponentType<{ className?: string }>;
-}) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors min-w-[180px] w-auto ${
-      isActive
-        ? 'bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--border)]'
-        : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
-    }`}
-    style={{ maxWidth: '100%', width: 'fit-content' }}
-  >
-    <Icon className="h-4 w-4 flex-shrink-0" />
-    <span className="truncate">{children}</span>
-  </button>
-);
 
 
 export default function AnalysisPage() {
@@ -542,6 +519,13 @@ export default function AnalysisPage() {
       setError(null);
       const { analysisAPI } = await import('@/lib/api/code-analysis');
       const data = await analysisAPI.getAnalysisResult(id);
+      
+      // Check if the job was not found
+      if (!data) {
+        setError('Analysis job not found. This job may have been deleted or does not exist.');
+        return;
+      }
+      
       setAnalysisData(data);
       
       console.log('Full API response:', data);
@@ -657,7 +641,13 @@ export default function AnalysisPage() {
       }
     } catch (err) {
       console.error('API Error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      
+      // Check if it's a 404 error (job not found)
+      if (err instanceof Error && (err.message.includes('404') || err.message.includes('not found'))) {
+        setError('Analysis job not found. This job may have been deleted or does not exist.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -675,7 +665,18 @@ export default function AnalysisPage() {
   if (error) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center max-w-4xl mx-auto p-6">
-        <div className="text-[var(--destructive)] text-lg mb-4">Error: {error}</div>
+        <div className="text-[var(--destructive)] text-lg mb-4">
+          {error.includes('Analysis job not found') ? (
+            <div className="space-y-4">
+              <div className="text-2xl font-semibold mb-2">Analysis Job Not Found</div>
+              <div className="text-base text-[var(--muted-foreground)]">
+                This analysis job may have been deleted or does not exist.
+              </div>
+            </div>
+          ) : (
+            `Error: ${error}`
+          )}
+        </div>
         
         {/* Debug information for JSON parsing errors */}
         {error.includes('Failed to parse analysis result') && analysisData?.analysis_data?.raw_result && (
@@ -718,12 +719,24 @@ export default function AnalysisPage() {
           </div>
         )}
         
-        <button 
-          onClick={() => analysisId && fetchAnalysisData(analysisId)}
-          className="px-4 py-2 bg-[var(--chart-2)] text-[var(--primary-foreground)] rounded hover:bg-[var(--chart-1)] transition-colors"
-        >
-          Retry
-        </button>
+        <div className="flex gap-3 justify-center">
+          {error.includes('Analysis job not found') ? (
+            <Button
+              onClick={() => router.push('/analysis')}
+              className="px-4 py-2 bg-[var(--chart-2)] text-[var(--primary-foreground)] rounded hover:bg-[var(--chart-1)] transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Analysis Jobs
+            </Button>
+          ) : (
+            <button 
+              onClick={() => analysisId && fetchAnalysisData(analysisId)}
+              className="px-4 py-2 bg-[var(--chart-2)] text-[var(--primary-foreground)] rounded hover:bg-[var(--chart-1)] transition-colors"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -793,161 +806,157 @@ export default function AnalysisPage() {
 
 
   return (
-    <DashboardLayout>
-              <div className="space-y-6">
-          {/* Header with Back Button */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-[var(--foreground)]">
-                  {analysisData?.job?.analysis_type === 'hld_analysis' ? 'High-Level Design Analysis' : 'Code Analysis Report'}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                <span className="font-mono bg-[var(--muted)] px-2 py-0.5 rounded">
-                  Analysis ID: {analysisData?.job?.id || 'Unknown'}
-                </span>
-              
-                
-              </div>
-            </div>
-          <div className="flex-shrink-0 flex items-center gap-2">
-            <Button
-              onClick={() => router.push('/analysis')}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Analysis Jobs
-            </Button>
+    <DashboardLayout fullWidth={true} showDefaultHeader={false}>
+      <div className="flex h-[calc(100vh-4rem)] group-hover/sidebar transition-all duration-300 ease-in-out fixed top-16 left-0 right-0 z-30">
+        {/* Header with Theme Toggle and User Menu */}
+        <div className="fixed top-0 right-0 z-50 p-4">
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <UserMenu />
           </div>
         </div>
-
-        {/* Job Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <GitBranch className="h-4 w-4 text-[var(--chart-2)]" />
-              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Repository</h3>
-            </div>
-            <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.repository_name || 'N/A'}</p>
-            {analysisData?.job?.repository_url && (
-              <a 
-                href={analysisData.job.repository_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] truncate block mt-1 transition-colors"
-              >
-                View Repository →
-              </a>
-            )}
-          </div>
-          
-          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="h-4 w-4 text-[var(--chart-1)]" />
-              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Status</h3>
-            </div>
-            <div className="flex items-center">
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                analysisData?.job?.status === 'completed' 
-                  ? 'bg-[var(--chart-1)] text-[var(--primary-foreground)]' 
-                  : analysisData?.job?.status === 'processing'
-                  ? 'bg-[var(--chart-3)] text-[var(--primary-foreground)]'
-                  : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
-              }`}>
-                {analysisData?.job?.status || 'Unknown'}
-              </span>
+        {/* Analysis Tab Sidebar */}
+        <div className="w-64 bg-[var(--bg-elevated-secondary)] border border-[var(--border-heavy)] flex-shrink-0 flex flex-col ml-16 group-hover/sidebar:ml-0 transition-all duration-300 ease-in-out h-full">
+          <div className="p-4 border-b border-[var(--border-heavy)] flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-[var(--text-primary)]">
+                {analysisData?.job?.analysis_type === 'hld_analysis' ? 'HLD Analysis' : 'Code Analysis'}
+              </h1>
             </div>
           </div>
           
-          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Code2 className="h-4 w-4 text-[var(--chart-4)]" />
-              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Model Used</h3>
-            </div>
-            <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.model_used || 'N/A'}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Tokens: {analysisData?.job?.total_tokens?.toLocaleString() || 0}</p>
-          </div>
-          
-          <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="h-4 w-4 text-[var(--chart-5)]" />
-              <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Analysis Type</h3>
-            </div>
-            <p className="text-lg font-semibold text-[var(--card-foreground)]">
-              {analysisData?.job?.analysis_type === 'hld_analysis' 
-                ? 'High-Level Design' 
-                : analysisData?.job?.analysis_type?.replace('_', ' ').toUpperCase() || 'N/A'}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Created: {analysisData?.job?.created_at ? new Date(analysisData.job.created_at).toLocaleDateString() : 'N/A'}
-            </p>
-          </div>
-        </div>
-
-        {/* Timing and Cost Information */}
-        {/* <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <div className="flex items-center gap-2 mb-3">
-            <DollarSign className="h-4 w-4 text-green-600" />
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Execution Details</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Started:</span> 
-              <span className="ml-1 font-medium">
-                {analysisData?.job?.started_at && analysisData.job.started_at !== "0001-01-01T05:53:28+05:53" 
-                  ? new Date(analysisData.job.started_at).toLocaleString() 
-                  : 'N/A'}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Completed:</span> 
-              <span className="ml-1 font-medium">
-                {analysisData?.job?.completed_at && analysisData.job.completed_at !== "0001-01-01T05:53:28+05:53"
-                  ? new Date(analysisData.job.completed_at).toLocaleString() 
-                  : 'N/A'}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Cost Estimate:</span> 
-              <span className="ml-1 font-medium">${analysisData?.job?.cost_estimate || 0}</span>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Tabbed Navigation */}
-        <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
-          <div className="border-b border-[var(--border)]">
-            <div className="flex space-x-1 p-4 overflow-x-auto">
+          <div className="flex-1 overflow-y-auto p-2 min-h-0 touch-pan-y">
+            <nav className="space-y-1">
               {tabs.map((tab) => (
-                <TabButton
+                <button
                   key={tab.id}
-                  isActive={activeTab === tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  icon={tab.icon}
+                  className={`group flex items-center rounded-md transition-all duration-300 ease-in-out text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start w-full cursor-pointer ${
+                    activeTab === tab.id
+                      ? 'bg-[var(--interactive-bg-secondary-press)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--interactive-bg-secondary-hover)] hover:text-[var(--text-primary)]'
+                  }`}
                 >
-                  {tab.label}
-                </TabButton>
+                  <tab.icon className={`flex-shrink-0 transition-all duration-200 h-5 w-5 ${
+                    activeTab === tab.id ? 'text-[var(--icon-primary)]' : 'text-current'
+                  }`} />
+                  <span className="truncate overflow-hidden transition-[max-width,opacity,transform] duration-300 pl-2 opacity-100 max-w-[160px] translate-x-0">
+                    {tab.label}
+                  </span>
+                </button>
               ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="flex-shrink-0 px-6 pt-6">
+            {/* Header with Back Button */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-[var(--foreground)]">
+                    {analysisData?.job?.analysis_type === 'hld_analysis' ? 'High-Level Design Analysis' : 'Code Analysis Report'}
+                  </h1>
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex items-center gap-2">
+                <Button
+                  onClick={() => router.push('/analysis')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Analysis Jobs
+                </Button>
+              </div>
+            </div>
+
+            {/* Job Information Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <GitBranch className="h-4 w-4 text-[var(--chart-2)]" />
+                  <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Repository</h3>
+                </div>
+                <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.repository_name || 'N/A'}</p>
+                {analysisData?.job?.repository_url && (
+                  <a 
+                    href={analysisData.job.repository_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--chart-2)] hover:text-[var(--chart-1)] truncate block mt-1 transition-colors"
+                  >
+                    View Repository →
+                  </a>
+                )}
+              </div>
+              
+              <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="h-4 w-4 text-[var(--chart-1)]" />
+                  <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Status</h3>
+                </div>
+                <div className="flex items-center">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    analysisData?.job?.status === 'completed' 
+                      ? 'bg-[var(--chart-1)] text-[var(--primary-foreground)]' 
+                      : analysisData?.job?.status === 'processing'
+                      ? 'bg-[var(--chart-3)] text-[var(--primary-foreground)]'
+                      : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
+                  }`}>
+                    {analysisData?.job?.status || 'Unknown'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Code2 className="h-4 w-4 text-[var(--chart-4)]" />
+                  <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Model Used</h3>
+                </div>
+                <p className="text-lg font-semibold text-[var(--card-foreground)]">{analysisData?.job?.model_used || 'N/A'}</p>
+                <p className="text-sm text-[var(--muted-foreground)]">Tokens: {analysisData?.job?.total_tokens?.toLocaleString() || 0}</p>
+              </div>
+              
+              <div className="bg-[var(--card)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-[var(--chart-5)]" />
+                  <h3 className="text-sm font-medium text-[var(--muted-foreground)] uppercase tracking-wide">Analysis Type</h3>
+                </div>
+                <p className="text-lg font-semibold text-[var(--card-foreground)]">
+                  {analysisData?.job?.analysis_type === 'hld_analysis' 
+                    ? 'High-Level Design' 
+                    : analysisData?.job?.analysis_type?.replace('_', ' ').toUpperCase() || 'N/A'}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Created: {analysisData?.job?.created_at ? new Date(analysisData.job.created_at).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
             </div>
           </div>
-          
-          <div className="p-6">
-            {analysisData?.job?.analysis_type === 'hld_analysis' ? (
-              <RenderTabContentHLD
-                activeTab={activeTab}
-                parsedAnalysis={{ hld_analysis: parsedAnalysis?.hld_analysis }}
-                analysisData={analysisData}
-              />
-            ) : (
-              <RenderTabContentLLD
-                activeTab={activeTab}
-                parsedAnalysis={parsedAnalysis as AnalysisData}
-                analysisData={analysisData}
-              />
-            )}
+
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto px-6 min-h-0 touch-pan-y">
+            <div className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)]">
+              <div className="p-6">
+                {analysisData?.job?.analysis_type === 'hld_analysis' ? (
+                  <RenderTabContentHLD
+                    activeTab={activeTab}
+                    parsedAnalysis={{ hld_analysis: parsedAnalysis?.hld_analysis }}
+                    analysisData={analysisData}
+                  />
+                ) : (
+                  <RenderTabContentLLD
+                    activeTab={activeTab}
+                    parsedAnalysis={parsedAnalysis as AnalysisData}
+                    analysisData={analysisData}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

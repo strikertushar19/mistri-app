@@ -13,13 +13,15 @@ interface DashboardLayoutProps {
   children: ReactNode
   headerContent?: ReactNode
   showDefaultHeader?: boolean
+  fullWidth?: boolean
 }
 
 // Single Responsibility: Compose the main dashboard layout
 export function DashboardLayout({ 
   children, 
   headerContent, 
-  showDefaultHeader = true 
+  showDefaultHeader = true,
+  fullWidth = false
 }: DashboardLayoutProps) {
   const sidebar = useSidebarContext()
 
@@ -73,8 +75,14 @@ export function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <main className={cn(showDefaultHeader ? "p-6" : "", "bg-transparent") }>
-            <div className={cn(showDefaultHeader ? "mx-auto max-w-7xl" : "", "bg-transparent")}>
+          <main className={cn(
+            showDefaultHeader && !fullWidth ? "p-6" : "", 
+            "bg-transparent"
+          )}>
+            <div className={cn(
+              showDefaultHeader && !fullWidth ? "mx-auto max-w-7xl" : "", 
+              "bg-transparent"
+            )}>
               {children}
             </div>
           </main>

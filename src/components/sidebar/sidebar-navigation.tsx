@@ -29,7 +29,7 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
 
   return (
     <nav className="flex-1 px-2 py-2 space-y-0.5">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/')) || (item.dropdownItems?.some(dropdownItem => dropdownItem.href === pathname))
         const Icon = item.icon
 
@@ -38,7 +38,10 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
           const isDropdownOpen = openDropdown === item.id
           
           return (
-            <div key={item.id} className="relative">
+            <div key={item.id} className={cn(
+              "relative",
+              item.hasTopBorder && "border-t border-[var(--border-heavy)] pt-2 mt-2"
+            )}>
               <button
                 onClick={() => {
                   if (isCollapsed) {
@@ -55,7 +58,7 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
                 }}
                 className={cn(
                   "group flex items-center rounded-md transition-all duration-300 ease-in-out w-full",
-                  "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start",
+                  "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start cursor-pointer",
                   isActive
                     ? "bg-[var(--interactive-bg-secondary-press)] text-[var(--text-primary)]"
                     : "text-[var(--text-secondary)] hover:bg-[var(--interactive-bg-secondary-hover)] hover:text-[var(--text-primary)]"
@@ -92,7 +95,7 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
                 {isCollapsed && (
                   <div className={cn(
                     "absolute left-full ml-3 px-3 py-1.5 bg-[var(--bg-elevated-primary)] text-[var(--text-primary)]",
-                    "text-sm rounded-md border border-[var(--border-light)] opacity-0 invisible",
+                    "text-sm rounded-md border border-[var(--border-heavy)] opacity-0 invisible",
                     "group-hover:opacity-100 group-hover:visible transition-opacity duration-150",
                     "whitespace-nowrap z-50 pointer-events-none"
                   )}>
@@ -118,7 +121,7 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
                         onClick={onNavigate}
                         className={cn(
                           "group flex items-center rounded-md transition-all duration-300 ease-in-out",
-                          "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start",
+                          "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start cursor-pointer",
                           isDropdownItemActive
                             ? "bg-[var(--interactive-bg-secondary-press)] text-[var(--text-primary)]"
                             : "text-[var(--text-secondary)] hover:bg-[var(--interactive-bg-secondary-hover)] hover:text-[var(--text-primary)]"
@@ -143,19 +146,21 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
         }
 
         return (
-          <Link
-            key={item.id}
-            href={item.href}
-            onClick={onNavigate}
-            className={cn(
-              "group flex items-center rounded-md transition-all duration-300 ease-in-out",
-              "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start",
-              isActive
-                ? "bg-[var(--interactive-bg-secondary-press)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:bg-[var(--interactive-bg-secondary-hover)] hover:text-[var(--text-primary)]"
-            )}
-            title={isCollapsed ? item.name : undefined}
-          >
+          <div key={item.id} className={cn(
+            item.hasTopBorder && "border-t border-[var(--border-medium)] pt-2 mt-2"
+          )}>
+            <Link
+              href={item.href}
+              onClick={onNavigate}
+              className={cn(
+                "group flex items-center rounded-md transition-all duration-300 ease-in-out",
+                "text-sm font-medium relative px-2 py-2 mx-1 gap-3 justify-start cursor-pointer",
+                isActive
+                  ? "bg-[var(--interactive-bg-secondary-press)] text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--interactive-bg-secondary-hover)] hover:text-[var(--text-primary)]"
+              )}
+              title={isCollapsed ? item.name : undefined}
+            >
             <Icon className={cn(
               "flex-shrink-0 transition-all duration-200 h-5 w-5",
               isActive ? "text-[var(--icon-primary)]" : "text-current"
@@ -188,7 +193,7 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
             {isCollapsed && (
               <div className={cn(
                 "absolute left-full ml-3 px-3 py-1.5 bg-[var(--bg-elevated-primary)] text-[var(--text-primary)]",
-                "text-sm rounded-md border border-[var(--border-light)] opacity-0 invisible",
+                "text-sm rounded-md border border-[var(--border-medium)] opacity-0 invisible",
                 "group-hover:opacity-100 group-hover:visible transition-opacity duration-150",
                 "whitespace-nowrap z-50 pointer-events-none"
               )}>
@@ -200,7 +205,8 @@ export function SidebarNavigation({ items, state, onNavigate }: SidebarNavigatio
                 )}
               </div>
             )}
-          </Link>
+            </Link>
+          </div>
         )
       })}
     </nav>
