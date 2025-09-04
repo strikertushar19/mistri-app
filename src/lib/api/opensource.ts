@@ -33,7 +33,7 @@ export interface GitHubRepository {
   }
   size: number
   open_issues_count: number
-  open_pull_requests_count: number
+  open_pull_requests_count?: number
   default_branch: string
 }
 
@@ -129,7 +129,7 @@ export class GitHubAPI {
     
     // Get pull requests count separately
     try {
-      const prsCount = await this.getPullRequestsCount(owner, repo)
+      const prsCount = await this.getIssuesAndPRsCount(owner, repo)
       repoData.open_pull_requests_count = prsCount
     } catch (error) {
       console.warn('Could not fetch pull requests count:', error)
