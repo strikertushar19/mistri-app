@@ -83,10 +83,10 @@ export function ChatHeader({
       </div>
       
       <div className="flex items-center gap-2">
-        <ModelSelector
+        {/* <ModelSelector
           selectedModel={selectedModel}
           onModelSelect={onModelSelect}
-        />
+        /> */}
        
         <ThemeToggle />
         <UserMenu />
@@ -485,7 +485,7 @@ export function ChatInterface({ renderHeader }: ChatInterfaceProps) {
           <div className="flex flex-col items-center justify-center h-full p-6">
             <div className="text-center text-muted-foreground mb-6">
               <h2 className="text-2xl font-semibold mb-2 text-[var(--text-primary)]">
-                {currentConversation ? "No messages in this conversation" : "Start a conversation"}
+                {currentConversation ? "No messages in this conversation" : "Talk to your codebase"}
               </h2>
               <p className="text-sm">
                 {currentConversation ? "This conversation appears to be empty." : "Ask me anything about your codebase or project"}

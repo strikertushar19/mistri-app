@@ -9,6 +9,7 @@ export const navigationConfig: NavigationItem[] = [
     href: "/dashboard",
     icon: Home,
   },
+
   { id: "chat", name: "Chat", href: "/chat", icon: MessageCircle },
   { id: "analysis", name: "Analysis", href: "/analysis", icon: BarChart3 },
   { id: "chat-history", name: "Chat History", href: "/history", icon: History },
@@ -25,7 +26,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   // {
   //   id: "opensource",
-  //   name: "Open Source",
+  //   name: "Open Source Options",
   //   href: "#",
   //   icon: Terminal,
   //   hasDropdown: true,
